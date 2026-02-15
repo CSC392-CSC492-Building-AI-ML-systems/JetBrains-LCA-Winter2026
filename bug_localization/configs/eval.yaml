@@ -6,7 +6,7 @@ hydra:
   run:
     dir: ${data_path}/eval/${run_id}
 
-data_path: "/Users/Maria.Tigina/PycharmProjects/lca-baselines/bug_localization/data"
+data_path: "./data"
 run_id: "deepseek-v3_filepath"
 
 defaults:

@@ -6,7 +6,7 @@ hydra:
   run:
     dir: ${data_path}/run/${backbone.name}_${context_composer.name}
 
-data_path: "/Users/Maria.Tigina/PycharmProjects/lca-baselines/bug_localization/data"
+data_path: "./data"
 
 defaults:
   - _self_
