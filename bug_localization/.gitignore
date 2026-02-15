@@ -5,4 +5,5 @@
 **/tree-sitter-java
 **/tree-sitter-kotlin
 **/tree-sitter-python
-./data/
+data/
+__pycache__/
