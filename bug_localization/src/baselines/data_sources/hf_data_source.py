@@ -52,6 +52,8 @@ class HFDataSource(BaseDataSource):
         for category in self._configs:
             repos = paths_json[category][0]
             for i, repo_zip_path in enumerate(repos):
+                if i >= 5:
+                    break
                 logger.info(f"Loading {i}/{len(repos)} {repo_zip_path}")
 
                 repo_name = os.path.basename(repo_zip_path).split('.zip')[0]
@@ -77,6 +79,8 @@ class HFDataSource(BaseDataSource):
             self._load_repos()
             for dp in dataset:
                 repo_path = os.path.join(self._repos_dir, f"{dp['repo_owner']}__{dp['repo_name']}")
+                if not os.path.exists(repo_path):
+                    continue
                 try:
                     repo_content = get_repo_content_on_commit(
                         repo_path, dp['base_sha'],
