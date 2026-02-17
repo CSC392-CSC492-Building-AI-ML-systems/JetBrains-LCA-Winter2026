@@ -1,9 +1,19 @@
+from dataclasses import dataclass
 import docker
 
 from docker.models.containers import Container
 from dataset_loader import SWEbenchInstance
 
 client = docker.from_env()
+
+@dataclass
+class RunSpec:
+
+    instance_id: str
+    repo: str
+    version: str
+    repo_script_list: list[str]
+    eva
 
 TEST_PYTEST = "pytest -rA"
 SPECS_SQLFLUFF = {
@@ -33,3 +43,6 @@ SPECS_SQLFLUFF = {
         "2.2",
     ]
 }
+
+SQLFLUFF_REQUIREMENTS = ["requirements-dev.txt"]
+

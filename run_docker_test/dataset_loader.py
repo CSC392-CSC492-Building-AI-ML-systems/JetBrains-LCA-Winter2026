@@ -28,4 +28,4 @@ def load_swebench_lite_dataset():
 if __name__ == "__main__":
     dataset = load_swebench_lite_dataset()
     for i in range(1):
-        print(dataset[i]["repo"])
+        print(dataset[i]["FAIL_TO_PASS"])
