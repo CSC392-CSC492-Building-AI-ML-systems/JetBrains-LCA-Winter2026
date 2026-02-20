@@ -37,6 +37,7 @@ class SWELiteDataSource():
         self.__load_dataset()
 
     def __load_dataset(self):
+        print("Loading dataset and cloning repositories...")
         for i, item in enumerate(self.dataset):
             if i > 5:
                 break
