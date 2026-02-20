@@ -5,7 +5,7 @@ from datasets import load_dataset, Dataset
 from typing import TypedDict, cast
 import git
 
-data_path = "./swebench_lite_data"
+from constants import data_path
 
 load_dotenv()
 
@@ -62,10 +62,6 @@ class SWELiteDataSource():
                 "PASS_TO_PASS": item["PASS_TO_PASS"],
                 "environment_setup_commit": item["environment_setup_commit"]
             }
-
-    
-
-    
 
 if __name__ == "__main__":
     source = SWELiteDataSource("dev", data_path)

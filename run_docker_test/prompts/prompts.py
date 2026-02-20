@@ -1,1 +1,1 @@
-INITIAL_QUERY = ""
+INITIAL_QUERY = "In the folder {}, there are some tests that are failing to pass: {}.\n\nThe tests are failing after the following commit: {}. \n\nCan you localize the bug and write a patch file for the repository that can fix the bug and make the tests pass? Please provide only the patch file content without any explanations."

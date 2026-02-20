@@ -1,0 +1,1 @@
+data_path = "./swebench_lite_data"
