@@ -14,7 +14,7 @@ from constants import data_path
 
 async def initialize_client():
     client = ClaudeSDKClient(options=ClaudeAgentOptions(
-        allowed_tools=["Read", "Write", "Edit", "Glob"]
+        allowed_tools=["Read", "Write", "Edit"]
     ))
     await client.connect(
     )
