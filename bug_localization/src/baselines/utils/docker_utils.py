@@ -12,53 +12,45 @@ def build_env_images(
     path_content:str,
 ):
     """
-    Build docker image for a single data point
+    Use prebuilt image provided in swe dataset lite
+    directory within docker container according to gemini
+    / (Root of the Docker Container)
+    ├── opt/
+    │   └── miniconda3/        <-- The pre-installed Python/Conda environment
+    │       └── envs/
+    │           └── testbed/   <-- The specific Python environment with all dependencies installed
+    │
+    ├── testbed/               <-- 🌟 THE MOST IMPORTANT FOLDER 🌟
+    │   ├── .git/              <-- The repository is already a cloned Git repo
+    │   ├── setup.py           <-- Build files
+    │   ├── README.md
+    │   ├── {source_code}/     <-- The actual buggy code (e.g., "django/" or "sympy/")
+    │   └── tests/             <-- The test suite you will run
+    │
+    └── dev/null               <-- The file your `tail -f` command is staring at to stay awake
     """
-    repo_name = dp['repo_name']
-    commit_hash = dp['commit_hash']
+    instance_id = dp['text_id'] # e.g., 'sympy__sympy-20590'
     
-    # Create a unique name for this bug's image
-    safe_repo_name = repo_name.replace("/", "_")
-    image_tag = f"jetbrains-lca:{safe_repo_name}-{commit_hash[:7]}"
+    # swe bench lite dataset already has prebuilt docker image, so we just need to retrieve it
+    image_tag = f"sweb.eval.x86_64.{instance_id}:latest"
     
-    # docker file content, to be executed within a docker container
-    # We might want to do git apply like what swe bench do
-    dockerfile_content = f"""
-    FROM python:3.9-slim
-
-    RUN apt-get update && apt-get install -y git
-
-    # Clone the repository into the container
-    WORKDIR /app
-    RUN git clone https://github.com/{repo_name}.git .
-
-    # Travel back in time to the exact commit where the bug existed
-    RUN git checkout {commit_hash}
-
-    # Install the repository dependencies 
-    # (JetBrains repos might use different installers, so we chain fallbacks)
-    RUN pip install -e . || pip install -r requirements.txt || true
-    """
-
-    # build the docker image
-    with tempfile.TemporaryDirectory() as tmpdir:
-        dockerfile_path = os.path.join(tmpdir, "Dockerfile")
-        
-        with open(dockerfile_path, "w") as f:
-            f.write(dockerfile_content.strip())
-            
-        print(f"Building Docker image: {image_tag}...")
-        
-        # tell docker to build the image
-        client.images.build(
-            path=tmpdir,
-            tag=image_tag,
-            rm=True
+    try:
+        # if we already have it
+        client.images.get(image_tag)
+        print(f"Image {image_tag} found locally.")
+    except docker.errors.ImageNotFound:
+        print(f"Pulling SWE-bench image for {instance_id} ")
+        # we pull it from docker registry
+        client.images.pull(
+            "ghcr.io/epoch-research/swe-bench.eval.x86_64", 
+            tag=instance_id
         )
         
-    print("Build complete!")
+        # Tag it locally to match the SWE-bench convention
+        image = client.images.get(f"ghcr.io/epoch-research/swe-bench.eval.x86_64:{instance_id}")
+        image.tag(f"sweb.eval.x86_64.{instance_id}", tag="latest")
+
     return image_tag
-    
 
 def start_container(
     client: docker.DockerClient,
@@ -87,11 +79,22 @@ def start_container(
 
         container = client.containers.create(
             image=image_tag,
-            name=f"this_is_a_docker_name"
+            name=f"this_is_a_docker_name_for_{image_tag}",
             detach=True,
             command="tail -f /dev/null",
         )
         # print"Container for {test_spec.instance_id} created: {container.id}")
+        container.start()
+        container.exec_run("wget https://github.com/checkstyle/checkstyle/releases/download/checkstyle-10.18.1/checkstyle-10.18.1-all.jar -O /checkstyle.jar")
+        
+        # create empty Checkstyle config to ignore style and ONLY check syntax
+        empty_config = '<?xml version="1.0"?><!DOCTYPE module PUBLIC "-//Puppy Crawl//DTD Check Configuration 1.3//EN" "https://checkstyle.org/dtds/configuration_1_3.dtd"><module name="Checker"></module>'
+        container.exec_run(f"echo '{empty_config}' > /empty_checks.xml")
+
+        # download Ktlint 
+        container.exec_run("curl -sSLO https://github.com/pinterest/ktlint/releases/download/1.2.1/ktlint")
+        container.exec_run("chmod a+x ktlint && mv ktlint /usr/local/bin/")
+            
         return container
     except Exception as e:
         # stop container if an error happen
@@ -120,9 +123,14 @@ def copy_to_container(container: Container, patch_file_path: Path, container_pat
     
    
 
-def clean_images():
+def clean_images(container):
     """
     Clean Docker images
     """
-    # TO-DOs: Implement clean_images()
-    raise NotImplementedError
+    try:
+        print(f"Cleaning up container {container}...")
+        container.stop(timeout=5)
+        container.remove(force=True)
+    except Exception as e:
+        print(f"Warning: Failed to clean up container: {str(e)}")
+    # raise NotImplementedError
