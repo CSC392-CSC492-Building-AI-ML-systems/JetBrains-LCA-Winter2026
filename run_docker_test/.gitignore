@@ -1,2 +1,3 @@
 __pycache__/
-swebench_lite_data/*
+swebench/
+swebench_lite_data/
