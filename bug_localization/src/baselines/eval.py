@@ -18,23 +18,13 @@ def main(cfg: DictConfig) -> None:
     OmegaConf.set_struct(cfg, False)
     os.environ['HYDRA_FULL_ERROR'] = '1'
 
-    # look at /home/wu/CSC398/SWE-bench/swebench/harness/utils.py load_swebench_dataset(...) to figure out how to load
-    # swe dataset
     data_src: BaseDataSource = hydra.utils.instantiate(cfg.data_source)
 
     eval_dir_path = Path(HydraConfig.get().run.dir)
     os.makedirs(eval_dir_path, exist_ok=True)
     eval_results_path = eval_dir_path / 'results.jsonl'
 
-    # TO-DOs: need to figure out where the patch file is located
     patch_path = cfg.patchfile_path
-    # os.path.join(cfg.data_path, 'run', cfg.run_id, 'results.jsonl')
-    # os.path.join(cfg.data_path, 'run', cfg.run_id, 'results.jsonl')
-    # with open(patch_path, 'r') as f:
-    #     for line in f.readlines():
-    #         data = json.loads(line.strip())
-    #         text_id = data.get('text_id')
-            # run_by_text_id[text_id] = data
             
     run_by_text_id = {}
     for patch_filename in os.listdir(patch_path):
@@ -54,18 +44,12 @@ def main(cfg: DictConfig) -> None:
                 'patch_path': original_patch_file
             }
             
-    # instance_image_tag: str = "latest",
-    # env_image_tag: str = "latest",
     client = docker.from_env()
     for dp in data_src:
         run_result = run_by_text_id.get(dp['text_id'])
         if not run_result:
             continue
         if run_result['patch_content']:
-            # try:
-            #     files = json.loads(run_result['json_completion'])
-            # except Exception as e:
-            #     files = {'files': []}
 
             logger.info(f'processing {(dp['text_id'])}')
         
@@ -80,13 +64,13 @@ def main(cfg: DictConfig) -> None:
             if result.exit_code != 0:
                 print("fail to apply fix")
             else:
-                # 2. Get the list of unstaged files the AI just modified
+                # get the list of changed files
                 diff_output = container.exec_run("git diff --name-only", workdir="/testbed")
                 changed_files = diff_output.output.decode('utf-8').strip().split('\n')
                 
                 syntax_passed = True
                 
-                # 3. Loop through every modified file and check its syntax
+                # loop through every changed python, java, kotlin file to check its syntax correctness
                 for patched_file in changed_files:
                     if not patched_file:
                         continue
@@ -107,18 +91,17 @@ def main(cfg: DictConfig) -> None:
                     if compile_check.exit_code != 0:
                         if patched_file.endswith(".py") or patched_file.endswith(".java"):
                             # Python and our Empty-Config Checkstyle only fail on true syntax errors
-                            logger.error(f"Syntax Error in {patched_file}:\n{output_str}")
+                            print(f"Syntax Error in {patched_file}:\n{output_str}")
                             syntax_passed = False
                             break
                             
                         elif patched_file.endswith(".kt"):
                             # Ktlint will complain about style. 
                             if "ParseException" in output_str or "RuleExecutionException" in output_str:
-                                logger.error(f"Kotlin Syntax Error in {patched_file}:\n{output_str}")
+                                print(f"Kotlin Syntax Error in {patched_file}:\n{output_str}")
                                 syntax_passed = False
                                 break
             
-            # --- NEW: Save the evaluation results ---
             eval_result = {
                 'text_id': dp['text_id'],
                 'patch_applied': result.exit_code == 0,
@@ -127,25 +110,7 @@ def main(cfg: DictConfig) -> None:
             }
             with open(eval_results_path, 'a', newline='') as f:
                 f.write(json.dumps(eval_result) + "\n")
-            # logger.info(len(files['files']))
-
-            # Don't need following as they are for bug localization
-            # all_files = [path for path, _ in dp['repo_content'].items()]
-            # expected_files = dp['changed_files']
-            # actual_files = files['files'] if files else []
-
-            # eval_result = {'text_id': dp['text_id']}
-
-            # quality_metrics = get_quality_metrics(all_files, expected_files, actual_files)
-            # logger.info(quality_metrics)
-            # eval_result.update(quality_metrics)
-
-            # messages = json.loads(run_result['messages'])
-            # context_metrics = get_context_metrics(messages)
-            # eval_result.update(context_metrics)
-
-            # with open(eval_results_path, 'a', newline='') as f:
-            #     f.write(json.dumps(eval_result) + "\n")
+            
             clean_images(image_tag)
 
 if __name__ == '__main__':
