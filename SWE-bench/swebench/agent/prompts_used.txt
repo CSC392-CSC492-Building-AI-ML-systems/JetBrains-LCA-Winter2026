@@ -1,0 +1,4 @@
+│ SWE-bench provides a dataset of real GitHub issues and an evaluation pipeline that grades patches — but no program to generate those patches. We're building the missing piece: an automated system │
+│  that gives AI coding agents (starting with Claude) interactive access to Docker containers, lets them explore code, edit files, run tests, and iterate until they produce a fix. The output is a   │
+│ predictions JSONL file that plugs directly into swebench.harness.run_evaluation. 
+
