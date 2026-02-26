@@ -37,9 +37,25 @@ class OpenAIBackbone(BaseBackbone):
             **self._parameters
         )
 
+    @property
+    def model_name(self) -> str:
+        return self._model_name
+
+    @property
+    def context_composer(self):
+        return self._context_composer
+
     @retry(wait=wait_random_exponential(multiplier=1, max=40), stop=stop_after_attempt(3))
     def localize_bugs(self, dp: dict) -> Dict[str, Any]:
         messages = self._context_composer.compose_chat(dp, self._model_name)
+        return self.call_llm(messages)
+
+    @retry(wait=wait_random_exponential(multiplier=1, max=40), stop=stop_after_attempt(3))
+    def call_llm(self, messages: List[ChatMessage]) -> Dict[str, Any]:
+        """
+        Make an API call with pre-composed messages.
+        Use this when prompts have been cached and the repo is no longer on disk.
+        """
         completion = self._get_chat_completion(messages)
         raw_completion_content = completion.choices[0].message.content
 

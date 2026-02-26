@@ -8,6 +8,19 @@ hydra:
 
 data_path: "./data"
 
+# ── Parallel mode settings ───────────────────────────────────────────
+# Set parallel: true to enable bounded-repo cloning + parallel API calls.
+# In legacy mode (parallel: false), behaviour is identical to the original.
+parallel: false
+
+# Maximum number of cloned repos on disk at any one time.
+# Only used when parallel: true.
+max_repos_on_disk: 3
+
+# Number of concurrent threads making LLM API calls.
+# Only used when parallel: true.
+max_api_workers: 4
+
 defaults:
   - _self_
   - data_source: hf
