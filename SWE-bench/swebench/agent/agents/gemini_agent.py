@@ -56,39 +56,19 @@ give_up_decl = types.FunctionDeclaration(
     }
 )
 
-class GeminiAgent(AgentBase):
-    ""
-
-    def solve(
-        self,
-        instance: SWEbenchInstance,
-        session: ContainerSession,
-        metrics: AgentMetrics,
-    ) -> AgentResult:
-        
-        
-        metrics.iterations = 0
-        patch = session.get_patch()
-        exit_reason = "completed"
-        metrics.finalize(patch or None, exit_reason)
-        return AgentResult(
-            instance_id=instance["instance_id"],
-            model_name_or_path=self.model_name_or_path,
-            model_patch=patch or None,
-            metrics=metrics,
-            exit_reason=exit_reason,
-        )
-
 DEFAULT_MODEL = "gemini-3.1-pro"
 OUTPUT_TRUNCATION_CHARS = 50_000
 HALF_TRUNCATION = OUTPUT_TRUNCATION_CHARS // 2
-
 
 GEMINI_TOOLS = types.Tool(
     function_declarations=[execute_command_decl, submit_patch_decl, give_up_decl]
 )
 
 class GeminiAgent(AgentBase):
+    "Gemini Agent that attempts to solve a bug instance. Talk with gemini client in multiple iteration"
+    "until the bug is fix. In each iteration, we check the message returned by gemini client to see what"
+    "function the client intend to run in a docker container, run it, then in the next iteration, send the"
+    "history message along with terminal output in the docker container to the client to receive next response."
     def __init__(
         self,
         model_name_or_path: str = DEFAULT_MODEL,
@@ -114,7 +94,9 @@ class GeminiAgent(AgentBase):
         system_prompt = get_system_prompt(instance)
         user_prompt = get_user_prompt(instance)
 
-        # Gemini uses 'user' and 'model' roles via Content and Part objects
+        # User role represent us, model role represent the client's response
+        # this is initial prompt, we will append docker container terminall output and 
+        # client's response into this messages list
         messages = [
             types.Content(
                 role="user",
@@ -122,7 +104,7 @@ class GeminiAgent(AgentBase):
             )
         ]
         
-        # Configuration block
+        # temperate == 0 mean gemini client provide logical reason
         config = types.GenerateContentConfig(
             system_instruction=system_prompt,
             tools=[GEMINI_TOOLS],
@@ -142,6 +124,7 @@ class GeminiAgent(AgentBase):
             metrics.iterations = iteration
             logger.info(f"--- Iteration {iteration}/{self.max_iterations} ---")
 
+            # here we get the response from gemini client. 
             try:
                 response = self.api_client.models.generate_content(
                     model=self.model_name_or_path,
@@ -153,7 +136,7 @@ class GeminiAgent(AgentBase):
                 exit_reason = "error"
                 break
 
-            # Track tokens
+            # Track tokens, for evaluation metric comparison
             usage = getattr(response, "usage_metadata", None)
             if usage:
                 metrics.input_tokens += getattr(usage, "prompt_token_count", 0)
@@ -171,11 +154,11 @@ class GeminiAgent(AgentBase):
                 exit_reason = "error"
                 break
 
-            # Append the model's exact response back into the history
+            # add the model's exact response back into message for next prompt
             assistant_content = response.candidates[0].content
             messages.append(assistant_content)
 
-            # Log text blocks and find function calls
+            # find what client want us to do in the container
             function_calls = []
             for part in assistant_content.parts:
                 if part.text:
@@ -198,7 +181,7 @@ class GeminiAgent(AgentBase):
                 tool_input = dict(fc.args) if fc.args else {}
 
                 logger.info(f"Tool call: {tool_name}({json.dumps(tool_input)[:200]})")
-
+                # apply the command requested by gemini client in the docker container
                 if tool_name == "execute_command":
                     result_text = self._handle_execute(
                         session, metrics, tool_input, logger
@@ -209,7 +192,7 @@ class GeminiAgent(AgentBase):
                             response={"output": result_text}
                         )
                     )
-
+                # gemini is confident he fixes the bug
                 elif tool_name == "submit_patch":
                     reasoning = tool_input.get("reasoning", "")
                     logger.info(f"Agent submitted patch. Reasoning: {reasoning}")
@@ -221,7 +204,7 @@ class GeminiAgent(AgentBase):
                             response={"status": "Patch submitted successfully."}
                         )
                     )
-
+                # gemini gives up
                 elif tool_name == "give_up":
                     reason = tool_input.get("reason", "")
                     logger.info(f"Agent gave up. Reason: {reason}")
@@ -243,7 +226,7 @@ class GeminiAgent(AgentBase):
                     )
 
             if tool_responses:
-                # Append the execution results so the model can read them on the next loop
+                # Append the terminal output within container so the model can read them on the next loop
                 messages.append(
                     types.Content(
                         role="user",
