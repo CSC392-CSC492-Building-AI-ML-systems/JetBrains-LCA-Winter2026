@@ -2,21 +2,6 @@
 Bug-localisation benchmark runner.
 
 Supports two modes (controlled by ``parallel`` config flag):
-
-1. **Legacy mode** (``parallel: false``, default):
-   Iterates data points sequentially — clone all repos up-front, call
-   the LLM one data point at a time.  Identical to the original behaviour.
-
-2. **Parallel mode** (``parallel: true``):
-   - Repos are cloned **sequentially**, one at a time, bounded by
-     ``max_repos_on_disk`` (default 3).
-   - As soon as a repo is ready, all prompts for its data points are
-     composed and **cached to disk** via :class:`PromptCache`.
-   - The repo is then **deleted** to free space.
-   - LLM API calls are dispatched to a thread pool
-     (``max_api_workers`` threads) and run **in parallel**.
-   - On restart, already-processed ``text_id``s and already-cached
-     prompts are skipped automatically (**resumability**).
 """
 
 import json
@@ -37,10 +22,6 @@ from src.baselines.data_sources.base_data_source import BaseDataSource
 from src.baselines.data_sources.hf_data_source import HFDataSource
 from src.baselines.data_sources.prompt_cache import PromptCache
 
-
-# ──────────────────────────────────────────────────────────────────────
-#  Helpers
-# ──────────────────────────────────────────────────────────────────────
 
 def _load_existing_ids(results_path: Path) -> set:
     """Load text_ids that have already been written to results."""
@@ -72,10 +53,7 @@ def _process_single(
     return result
 
 
-# ──────────────────────────────────────────────────────────────────────
-#  Legacy (sequential) mode — original behaviour
-# ──────────────────────────────────────────────────────────────────────
-
+# old logic
 def _run_sequential(cfg: DictConfig) -> None:
     backbone: BaseBackbone = hydra.utils.instantiate(cfg.backbone)
     data_src: BaseDataSource = hydra.utils.instantiate(cfg.data_source)
@@ -103,10 +81,7 @@ def _run_sequential(cfg: DictConfig) -> None:
             f.flush()
 
 
-# ──────────────────────────────────────────────────────────────────────
-#  Parallel mode — clone → cache prompts → delete repo → call LLM
-# ──────────────────────────────────────────────────────────────────────
-
+#  Parallel logic 
 def _run_parallel(cfg: DictConfig) -> None:
     backbone: BaseBackbone = hydra.utils.instantiate(cfg.backbone)
 
@@ -117,17 +92,15 @@ def _run_parallel(cfg: DictConfig) -> None:
     os.makedirs(results_dir_path, exist_ok=True)
     results_path = results_dir_path / 'results.jsonl'
 
-    # ── Prompt cache (strategy-aware) ─────────────────────────────
+    # cache
     composer_name = cfg.context_composer.get('name', 'default')
     cache_dir = results_dir_path / 'prompt_cache' / composer_name
     prompt_cache = PromptCache(str(cache_dir))
     logger.info(f"Prompt cache: {cache_dir}  ({len(prompt_cache)} entries)")
 
-    # ── Resumability ──────────────────────────────────────────────
     existing_ids = _load_existing_ids(results_path)
     logger.info(f"Resuming — {len(existing_ids)} data points already processed")
 
-    # ── Repo manager ──────────────────────────────────────────────
     ds_cfg = cfg.data_source
     data_src = HFDataSource(
         hub_name=ds_cfg.hub_name,
@@ -138,7 +111,6 @@ def _run_parallel(cfg: DictConfig) -> None:
         max_repos_on_disk=max_repos,
     )
 
-    # ── Shared state for result writing ───────────────────────────
     write_lock = threading.Lock()
     total_submitted = 0
     total_completed = 0
@@ -148,7 +120,6 @@ def _run_parallel(cfg: DictConfig) -> None:
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures: Dict[Any, str] = {}
 
-            # ── Phase 1: stream repos, compose & cache, submit ────
             for config, repo_name, repo_path, datapoints in \
                     data_src.iter_repos_with_datapoints():
 
@@ -160,12 +131,11 @@ def _run_parallel(cfg: DictConfig) -> None:
                 for dp in datapoints:
                     text_id = dp['text_id']
 
-                    # Already have a final result → skip entirely
                     if text_id in existing_ids:
                         total_skipped += 1
                         continue
 
-                    # Compose and cache prompt (requires repo on disk)
+                    # Compose and cache prompt
                     if not prompt_cache.has(text_id):
                         messages = backbone.context_composer.compose_chat(
                             dp, backbone.model_name,
@@ -185,14 +155,12 @@ def _run_parallel(cfg: DictConfig) -> None:
                     futures[future] = text_id
                     total_submitted += 1
 
-                # ── All prompts for this repo are cached → delete ─
                 data_src.delete_repo(repo_path)
                 logger.info(
                     f"Repo '{repo_name}' deleted.  "
                     f"Submitted so far: {total_submitted}"
                 )
 
-            # ── Phase 2: collect results as they complete ─────────
             logger.info(
                 f"All repos processed.  Waiting for {len(futures)} "
                 f"API calls to complete …"
@@ -220,10 +188,6 @@ def _run_parallel(cfg: DictConfig) -> None:
     )
 
 
-# ──────────────────────────────────────────────────────────────────────
-#  Entry point
-# ──────────────────────────────────────────────────────────────────────
-
 @hydra.main(
     version_base="1.1",
     config_path=os.path.join(PROJECT_DIR / "configs"),
@@ -239,7 +203,7 @@ def main(cfg: DictConfig) -> None:
         logger.info("Running in PARALLEL mode")
         _run_parallel(cfg)
     else:
-        logger.info("Running in SEQUENTIAL (legacy) mode")
+        logger.info("Running in SEQUENTIAL mode")
         _run_sequential(cfg)
 
 

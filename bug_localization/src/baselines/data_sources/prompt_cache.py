@@ -9,15 +9,14 @@ from src import logger
 
 class PromptCache:
     """
-    Thread-safe, disk-backed cache for composed AI prompts.
-
-    Stores the fully composed chat messages (prompts) alongside metadata
-    (changed_files, all_files) so that once prompts are cached, the cloned
-    repo can be safely deleted and API calls can still proceed using the
-    cached prompts.
-
-    Cache is strategy-aware: the cache directory should include the
-    context_composer name so different strategies don't collide.
+    Caches AI prompts so we can reuse them without needing the original repo
+    Cache file format is JSONL, with each line containing a dict:
+    {
+        "text_id": str,  # unique identifier for the data point
+        "messages": list,  # the composed chat messages (system + user prompt)
+        "changed_files": list,  # ground-truth list of buggy files
+        "all_files": list,  # list of all file paths in the repo at that commit
+    }
     """
 
     def __init__(self, cache_dir: str):
@@ -57,15 +56,6 @@ class PromptCache:
         changed_files: list,
         all_files: list,
     ):
-        """
-        Cache a composed prompt entry to memory and disk.
-
-        Args:
-            text_id: Unique identifier for the data point.
-            messages: The composed chat messages (system + user prompt).
-            changed_files: Ground-truth list of buggy files.
-            all_files: List of all file paths in the repo at that commit.
-        """
         entry = {
             'text_id': text_id,
             'messages': messages,
