@@ -82,19 +82,17 @@ class OpenAICodexAgent(AgentBase):
 
         cmd = [
             self.codex_path,
+            "exec",
             "--dangerously-bypass-approvals-and-sandbox",
-            "--model", self.model_name_or_path,
-            "--config developer_instructions", system_prompt,
+            # "--model", self.model_name_or_path,
+            "-c developer_instructions={system_prompt}"
             "--json",
+            "--output-last-message", "./results_json.txt",
             prompt, 
         ]
 
         start_time = time.time()
         exit_reason = "completed"
-
-        # Build a clean environment so this is a fully independent Claude Code session,
-        # not a nested one (Claude Code refuses to launch inside another session).
-        # env = _clean_env()
 
         try:
             proc = subprocess.run(
@@ -118,14 +116,22 @@ class OpenAICodexAgent(AgentBase):
                 file.write(proc.stdout)
         
         except subprocess.TimeoutExpired:
+            print("Timedout")
             logger.error(f"Codex timed out after {self.agent_timeout}s")
             exit_reason = "timeout"
 
         except Exception as e:
+            print("error")
             logger.error(f"Failed to run Codex: {e}")
             exit_reason = "error"
 
-        pass
+        return AgentResult(
+            instance_id=instance["instance_id"],
+            model_name_or_path=self.model_name_or_path,
+            model_patch=None,
+            metrics=metrics,
+            exit_reason=exit_reason,
+        )
 
     def _build_system_prompt(self, container_name: str) -> str:
         return f"""\
