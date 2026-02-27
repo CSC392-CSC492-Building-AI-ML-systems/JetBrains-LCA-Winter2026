@@ -87,7 +87,7 @@ class OpenAICodexAgent(AgentBase):
             # "--model", self.model_name_or_path,
             "-c developer_instructions={system_prompt}"
             "--json",
-            "--output-last-message", "./results_json.txt",
+            # "--output-last-message", "./results_json.txt",
             prompt, 
         ]
 
@@ -112,6 +112,9 @@ class OpenAICodexAgent(AgentBase):
                 logger.info(f"Codex stderr:\n{proc.stderr[:2000]}")
 
             print(f"Codex raw output:\n{proc.stdout[:2000]}")
+            # data = json.loads(proc.stdout)
+            # print("JSON Frmatted data: ")
+            # print(data)
             with open("./results.txt", "w") as file:
                 file.write(proc.stdout)
         
@@ -125,10 +128,19 @@ class OpenAICodexAgent(AgentBase):
             logger.error(f"Failed to run Codex: {e}")
             exit_reason = "error"
 
+        try:
+            patch = session.get_patch()
+        except Exception as e:
+            logger.error(f"Failed to get patch: {e}")
+            patch = ""
+
+        model_patch = patch if patch else None
+        metrics.finalize(model_patch, exit_reason)
+
         return AgentResult(
             instance_id=instance["instance_id"],
             model_name_or_path=self.model_name_or_path,
-            model_patch=None,
+            model_patch=model_patch,
             metrics=metrics,
             exit_reason=exit_reason,
         )

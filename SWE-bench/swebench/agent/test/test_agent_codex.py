@@ -86,6 +86,7 @@ def test_codex_functions():
         )
 
         result = agent.solve(instance, session, metrics)
+        print(result)
 
     finally:
         session.cleanup()
