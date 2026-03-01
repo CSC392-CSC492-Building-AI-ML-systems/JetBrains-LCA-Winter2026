@@ -85,14 +85,15 @@ class OpenAICodexAgent(AgentBase):
             "exec",
             "--dangerously-bypass-approvals-and-sandbox",
             # "--model", self.model_name_or_path,
-            "-c developer_instructions={system_prompt}"
+            "-c", f"developer_instructions={system_prompt}",
             "--json",
-            # "--output-last-message", "./results_json.txt",
-            prompt, 
+            prompt
         ]
 
         start_time = time.time()
         exit_reason = "completed"
+
+        num_reasoning_steps, num_execution_steps, input_tokens, output_tokens = 0, 0, 0, 0
 
         try:
             proc = subprocess.run(
@@ -111,12 +112,11 @@ class OpenAICodexAgent(AgentBase):
             if proc.stderr:
                 logger.info(f"Codex stderr:\n{proc.stderr[:2000]}")
 
-            print(f"Codex raw output:\n{proc.stdout[:2000]}")
-            # data = json.loads(proc.stdout)
-            # print("JSON Frmatted data: ")
-            # print(data)
-            with open("./results.txt", "w") as file:
-                file.write(proc.stdout)
+            num_reasoning_steps, num_execution_steps, input_tokens, output_tokens = self._parse_output(proc.stdout)
+            metrics.iterations = num_reasoning_steps
+            metrics.commands_executed = num_execution_steps
+            metrics.input_tokens = input_tokens
+            metrics.output_tokens = output_tokens
         
         except subprocess.TimeoutExpired:
             print("Timedout")
@@ -144,6 +144,35 @@ class OpenAICodexAgent(AgentBase):
             metrics=metrics,
             exit_reason=exit_reason,
         )
+    
+    def _parse_output(self, output: str):
+        lines = output.split('\n')
+        num_reasoning_steps = 0
+        num_execution_steps = 0
+        input_tokens = 0
+        output_tokens = 0
+        for line in lines:
+            try:
+                j = json.loads(line)
+                if j.get("item") and j.get("item").get("type") == "reasoning":
+                    num_reasoning_steps += 1
+                elif j.get("type", "") == "item.started" and j.get("item") and j.get("item").get("type") == "reasoning":
+                    num_execution_steps += 1
+
+            except Exception as e:
+                pass
+        pass
+
+        # Get the last line
+        last_line = lines[-2]
+        try:
+            j = json.loads(last_line)
+            input_tokens = j.get("usage").get("input_tokens")
+            output_tokens = j.get("usage").get("output_tokens")
+        except Exception as e:
+            pass
+
+        return num_reasoning_steps, num_execution_steps, input_tokens, output_tokens
 
     def _build_system_prompt(self, container_name: str) -> str:
         return f"""\
