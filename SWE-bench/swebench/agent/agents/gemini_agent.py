@@ -56,7 +56,7 @@ give_up_decl = types.FunctionDeclaration(
     }
 )
 
-DEFAULT_MODEL = "gemini-3.1-pro"
+DEFAULT_MODEL = "gemini-2.5-flash"
 OUTPUT_TRUNCATION_CHARS = 50_000
 HALF_TRUNCATION = OUTPUT_TRUNCATION_CHARS // 2
 
@@ -82,6 +82,7 @@ class GeminiAgent(AgentBase):
         self.agent_timeout = agent_timeout
         self.max_token_budget = max_token_budget
         # Initializes the client; assumes GEMINI_API_KEY is in the environment
+        # currently my GEMINI_API_KEY is set to gemini-2.5-flash
         self.api_client = genai.Client()
 
     def solve(
