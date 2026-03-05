@@ -112,6 +112,9 @@ class OpenAICodexAgent(AgentBase):
             if proc.stderr:
                 logger.info(f"Codex stderr:\n{proc.stderr[:2000]}")
 
+            # with open("./results.txt", "w") as file:
+            #     file.write(proc.stdout)
+
             num_reasoning_steps, num_execution_steps, input_tokens, output_tokens = self._parse_output(proc.stdout)
             metrics.iterations = num_reasoning_steps
             metrics.commands_executed = num_execution_steps
@@ -156,7 +159,7 @@ class OpenAICodexAgent(AgentBase):
                 j = json.loads(line)
                 if j.get("item") and j.get("item").get("type") == "reasoning":
                     num_reasoning_steps += 1
-                elif j.get("type", "") == "item.started" and j.get("item") and j.get("item").get("type") == "reasoning":
+                elif j.get("type", "") == "item.started" and j.get("item") and j.get("item").get("type") == "command_execution":
                     num_execution_steps += 1
 
             except Exception as e:
