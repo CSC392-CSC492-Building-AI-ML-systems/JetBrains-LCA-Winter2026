@@ -56,7 +56,7 @@ class OpenAICodexAgent(AgentBase):
         if not self.codex_path:
             raise RuntimeError(
                 "Codex CLI not found. Install it."
-                # "https://docs.anthropic.com/en/docs/claude-code"
+                # "https://developers.openai.com/codex/cli/"
             )
         
     def solve(
