@@ -11,6 +11,7 @@ AGENT_REGISTRY: dict[str, type[AgentBase]] = {
 _LAZY_AGENTS = {
     "claude": "swebench.agent.agents.claude_agent.ClaudeAgent",
     "claude-code": "swebench.agent.agents.claude_code_agent.ClaudeCodeAgent",
+    "codex": "swebench.agent.agents.openai_codex_agent.OpenAICodexAgent"
 }
 
 
