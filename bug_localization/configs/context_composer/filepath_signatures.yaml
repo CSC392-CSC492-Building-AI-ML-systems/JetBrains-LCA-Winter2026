@@ -1,0 +1,4 @@
+_target_: src.baselines.context_composers.filepath_signatures_composer.FilepathSignaturesComposer
+name: filepath_signatures
+system_prompt_path: configs/prompts/filepath_signatures_system_prompt.md
+user_prompt_path: configs/prompts/filepath_signatures_user_prompt.md
