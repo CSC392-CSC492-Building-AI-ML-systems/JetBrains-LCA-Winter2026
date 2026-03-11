@@ -2,18 +2,18 @@
 
 Automated agentic patch generation for SWE-bench. This module gives AI coding agents interactive access to Docker containers, letting them explore code, edit files, run tests, and iterate until they produce a fix. The output is a predictions JSONL file that plugs directly into `swebench.harness.run_evaluation`.
 
-## Agent Types: `claude-code` vs `claude`
+## Agent Types
 
-This module ships three agent backends. The two real agents use the same underlying Claude models but access them very differently:
+This module ships four agent backends:
 
-| | `claude-code` | `claude` | `dummy` |
-|---|---|---|---|
-| **What it is** | Spawns the locally installed `claude` CLI as a subprocess | Calls the Anthropic Messages API directly via the Python SDK | No-op agent for pipeline testing |
-| **Auth** | Claude Code's own auth (OAuth) — no API key needed | Requires `ANTHROPIC_API_KEY` environment variable | None |
-| **Agent loop** | Claude Code's built-in loop with its own tools (Bash, Edit, Read, Grep, etc.), prompt engineering, and context management | Our custom loop with 3 tools (`execute_command`, `submit_patch`, `give_up`) implemented in `claude_agent.py` | Immediate return |
-| **Container interaction** | Runs `docker exec <container>` commands via Claude Code's Bash tool | Runs commands via `ContainerSession.execute()` which calls the Docker API directly | Runs `git diff` once |
-| **Cost control** | `--max-budget-usd` flag on the CLI | `max_token_budget` parameter (total input + output tokens) | Free |
-| **Install requirement** | `claude` CLI installed on the machine | `pip install -e ".[agent]"` (installs `anthropic` SDK) | None |
+| | `claude-code` | `claude` | `codex` | `dummy` |
+|---|---|---|---|---|
+| **What it is** | Spawns the locally installed `claude` CLI as a subprocess | Calls the Anthropic Messages API directly via the Python SDK | Spawns the locally installed `codex` CLI as a subprocess | No-op agent for pipeline testing |
+| **Auth** | Claude Code's own auth (OAuth) — no API key needed | Requires `ANTHROPIC_API_KEY` environment variable | Requires `OPENAI_API_KEY` environment variable | None |
+| **Agent loop** | Claude Code's built-in loop with its own tools (Bash, Edit, Read, Grep, etc.), prompt engineering, and context management | Our custom loop with 3 tools (`execute_command`, `submit_patch`, `give_up`) implemented in `claude_agent.py` | Codex CLI's built-in agent loop with its own tool execution | Immediate return |
+| **Container interaction** | Runs `docker exec <container>` commands via Claude Code's Bash tool | Runs commands via `ContainerSession.execute()` which calls the Docker API directly | Runs `docker exec <container>` commands via Codex CLI's tool execution | Runs `git diff` once |
+| **Cost control** | `--max-budget-usd` flag on the CLI | `max_token_budget` parameter (total input + output tokens) | `max_budget_usd` parameter + wall-clock `agent_timeout` | Free |
+| **Install requirement** | `claude` CLI installed on the machine | `pip install -e ".[agent]"` (installs `anthropic` SDK) | `codex` CLI installed on the machine | None |
 
 **Claude Code is a product, not an API feature.** The Anthropic API gives you access to Claude *models* — you send messages, get responses, and can use tool-use to build your own agent loop. Claude Code is a standalone application that Anthropic built *on top of* those models. It has its own agent loop, tool implementations, permission system, context management, and session persistence. You cannot get Claude Code's behavior through the API alone. If Claude Code is not installed on your machine, you must use the `claude` agent type with an API key.
 
@@ -41,7 +41,17 @@ python -m swebench.agent.run_agent \
     --output_dir ./predictions \
     --run_id my-run-001
 
-# Evaluate the generated predictions (same for both agents)
+# Option 3: Use OpenAI Codex CLI (requires codex CLI + OPENAI_API_KEY)
+python -m swebench.agent.run_agent \
+    --dataset_name SWE-bench/SWE-bench_Lite \
+    --split test \
+    --instance_ids django__django-11099 \
+    --agent codex \
+    --model_name_or_path code-davinci-002 \
+    --output_dir ./predictions \
+    --run_id my-run-001
+
+# Evaluate the generated predictions (same for all agents)
 python -m swebench.harness.run_evaluation \
     --dataset_name SWE-bench/SWE-bench_Lite \
     --predictions_path ./predictions/predictions.jsonl \
@@ -67,8 +77,9 @@ swebench/agent/
 ├── agents/
 │   ├── __init__.py          # Agent registry and factory
 │   ├── claude_agent.py      # Claude API agent (direct SDK calls)
-│   ├── claude_code_agent.py # Claude Code agent (local CLI subprocess)
-│   └── dummy_agent.py       # No-op agent for pipeline testing
+│   ├── claude_code_agent.py   # Claude Code agent (local CLI subprocess)
+│   ├── openai_codex_agent.py  # OpenAI Codex agent (local CLI subprocess)
+│   └── dummy_agent.py         # No-op agent for pipeline testing
 ├── test/
 │   └── test_agent_claude.py # Integration tests
 └── README.md
@@ -94,7 +105,7 @@ The main orchestration script. Handles argument parsing, dataset loading, Docker
 | `--dataset_name` | `SWE-bench/SWE-bench_Lite` | HuggingFace dataset name or path to JSON/JSONL |
 | `--split` | `test` | Dataset split |
 | `--instance_ids` | all | Space-separated instance IDs to run |
-| `--agent` | `claude` | Agent name (`claude-code`, `claude`, or `dummy`) |
+| `--agent` | `claude` | Agent name (`claude-code`, `claude`, `codex`, or `dummy`) |
 | `--model_name_or_path` | `claude-sonnet-4-20250514` | Model identifier |
 | `--max_iterations` | `30` | Max agent loop turns per instance |
 | `--agent_timeout` | `1800` | Wall-clock seconds per instance |
@@ -157,16 +168,21 @@ Defines the contract that all agents must implement.
 | `iterations` | `int` | Agent loop turns taken |
 | `input_tokens` / `output_tokens` | `int` | API token counts |
 | `total_tokens` | `int` | Sum of input + output |
-| `commands_executed` | `int` | Shell commands run |
+| `commands_executed` | `int` | Shell commands (Bash tool calls) run |
 | `commands_timed_out` | `int` | Commands that hit timeout |
+| `reasoning_steps` | `int` | Number of extended thinking blocks produced |
 | `exit_reason` | `str` | `completed` / `gave_up` / `max_iterations` / `timeout` / `error` |
 | `patch_produced` | `bool` | Whether a non-empty diff was generated |
-| `patch_size_bytes` | `int` | Size of the diff |
-| `estimated_cost_usd` | `float` | Estimated API cost |
+| `patch_size_bytes` | `int` | Size of the diff in bytes |
+| `lines_added` | `int` | Lines added in the patch (`+` lines, excluding diff headers) |
+| `lines_removed` | `int` | Lines removed in the patch (`-` lines, excluding diff headers) |
+| `estimated_cost_usd` | `float` | Actual API cost reported by the CLI, or 0.0 if unavailable |
 
 Methods: `start_timer()`, `stop_timer()`, `finalize(patch, exit_reason)`, `to_dict()`, `save(path)`.
 
-**`aggregate_metrics(list[AgentMetrics]) -> dict`** produces a summary across instances: totals, averages, patch rate, and exit reason counts.
+`finalize()` computes `total_tokens`, `patch_produced`, `patch_size_bytes`, `lines_added`, and `lines_removed` automatically from the patch string.
+
+**`aggregate_metrics(list[AgentMetrics]) -> dict`** produces a summary across instances: totals, averages, patch rate, reasoning steps, lines changed, and exit reason counts.
 
 ### `prompts.py` — Agent Prompts
 
@@ -175,7 +191,7 @@ Methods: `start_timer()`, `stop_timer()`, `finalize(patch, exit_reason)`, `to_di
 
 ### `agents/__init__.py` — Agent Registry
 
-Maps agent names to classes. The Claude agent is lazy-loaded to avoid requiring `anthropic` as a hard dependency.
+Maps agent names to classes. The `claude`, `claude-code`, and `codex` agents are lazy-loaded to avoid hard dependencies on external packages/CLIs.
 
 - `AGENT_REGISTRY` — Dict mapping names to classes (`"dummy"` is always available).
 - `create_agent(name, model_name_or_path, **kwargs) -> AgentBase` — Factory function. Raises `ValueError` for unknown agent names.
@@ -211,20 +227,48 @@ Delegates to the locally installed `claude` CLI (Claude Code) instead of calling
 
 **How it works:**
 1. `ContainerSession` starts the Docker container as usual.
-2. The agent spawns `claude --print --output-format json --dangerously-skip-permissions ...` as a subprocess.
+2. The agent spawns `claude --print --output-format stream-json --verbose --dangerously-skip-permissions ...` as a subprocess.
 3. The system prompt tells Claude Code to interact with the container via `docker exec <container_name> bash -c '...'`.
 4. Claude Code uses its built-in Bash tool to run those `docker exec` commands, exploring the repo, editing files, and running tests.
-5. When Claude Code finishes, the agent captures the patch from the container via `session.get_patch()`.
+5. When Claude Code finishes, the agent parses the NDJSON output stream to extract metrics, then captures the patch via `session.get_patch()`.
 
 **Cost control:** `--max-budget-usd` (default `$1.00`) is passed to the CLI, which stops when the budget is reached. A wall-clock `agent_timeout` (default 1800s) kills the subprocess if it hangs.
 
 **Key CLI flags used:**
 - `--print` — Non-interactive mode, exits when done.
-- `--output-format json` — Structured output with token counts.
+- `--output-format stream-json` — Streams one JSON event per line (NDJSON) rather than a single JSON blob. Required to observe intermediate events for metrics extraction.
+- `--verbose` — Required alongside `stream-json` in `--print` mode; causes Claude Code to emit assistant message events (tool calls, thinking blocks) in the stream.
 - `--dangerously-skip-permissions` — No interactive permission prompts.
-- `--allowedTools Bash` — Only the Bash tool is available (edits happen via `docker exec` + `sed`/heredoc, not local file tools).
+- `--allowedTools Bash(docker exec ...)` — Restricts Claude Code to only Bash commands that match `docker exec <container>` (edits happen via `docker exec` + `sed`/heredoc, not local file tools).
 - `--model` — Model alias (e.g., `sonnet`, `opus`).
 - `--max-budget-usd` — Hard dollar cap on API usage.
+
+**Metrics extraction from stream-json:** The `_parse_output()` method walks every NDJSON line from stdout:
+- `type: "assistant"` events — scans each content block: `type: "thinking"` increments `reasoning_steps`; `type: "tool_use"` with `name: "Bash"` increments `commands_executed`.
+- `type: "result"` event (final line) — reads `usage.input_tokens`, `usage.output_tokens`, `total_cost_usd`, and `num_turns`.
+
+### `agents/openai_codex_agent.py` — OpenAI Codex Agent
+
+Delegates to the locally installed `codex` CLI instead of calling an API directly. Requires the Codex CLI to be installed on the machine and an `OPENAI_API_KEY` environment variable.
+
+**Default model:** `code-davinci-002`
+
+**How it works:**
+1. `ContainerSession` starts the Docker container as usual.
+2. The agent spawns `codex exec --dangerously-bypass-approvals-and-sandbox --json ...` as a subprocess.
+3. A system prompt (passed via `-c developer_instructions=...`) tells Codex to interact with the container via `docker exec <container_name> bash -c '...'`.
+4. Codex uses its built-in tools to run those `docker exec` commands, exploring the repo, editing files, and running tests.
+5. When Codex finishes, the agent captures the patch from the container via `session.get_patch()`.
+
+**Cost control:** `max_budget_usd` (default `$1.00`) is tracked internally. A wall-clock `agent_timeout` (default 1800s) kills the subprocess if it hangs.
+
+**Key CLI flags used:**
+- `exec` — Execute mode for running a task.
+- `--dangerously-bypass-approvals-and-sandbox` — No interactive permission prompts or sandboxing.
+- `--json` — Structured JSONL output with token usage and step details.
+- `-c developer_instructions=...` — Passes the system prompt to the Codex agent.
+
+**Metrics parsing:** The agent parses the JSONL output to extract reasoning steps (items with `type: "reasoning"`), execution steps (items with `type: "command_execution"`), and token usage (`input_tokens`, `output_tokens`) from the final summary line.
 
 ### `agents/dummy_agent.py` — No-Op Test Agent
 

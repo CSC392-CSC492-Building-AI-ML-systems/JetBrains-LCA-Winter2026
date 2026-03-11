@@ -19,9 +19,12 @@ class AgentMetrics:
     total_tokens: int = 0
     commands_executed: int = 0
     commands_timed_out: int = 0
+    reasoning_steps: int = 0
     exit_reason: str = ""
     patch_produced: bool = False
     patch_size_bytes: int = 0
+    lines_added: int = 0
+    lines_removed: int = 0
     estimated_cost_usd: float = 0.0
 
     def start_timer(self) -> None:
@@ -38,6 +41,11 @@ class AgentMetrics:
         if patch:
             self.patch_produced = True
             self.patch_size_bytes = len(patch.encode("utf-8"))
+            for line in patch.splitlines():
+                if line.startswith("+") and not line.startswith("+++"):
+                    self.lines_added += 1
+                elif line.startswith("-") and not line.startswith("---"):
+                    self.lines_removed += 1
         else:
             self.patch_produced = False
             self.patch_size_bytes = 0
@@ -55,9 +63,12 @@ class AgentMetrics:
             "total_tokens": self.total_tokens,
             "commands_executed": self.commands_executed,
             "commands_timed_out": self.commands_timed_out,
+            "reasoning_steps": self.reasoning_steps,
             "exit_reason": self.exit_reason,
             "patch_produced": self.patch_produced,
             "patch_size_bytes": self.patch_size_bytes,
+            "lines_added": self.lines_added,
+            "lines_removed": self.lines_removed,
             "estimated_cost_usd": self.estimated_cost_usd,
         }
 
@@ -75,6 +86,9 @@ def aggregate_metrics(metrics_list: list[AgentMetrics]) -> dict:
     total_output = sum(m.output_tokens for m in metrics_list)
     total_commands = sum(m.commands_executed for m in metrics_list)
     total_timeouts = sum(m.commands_timed_out for m in metrics_list)
+    total_reasoning = sum(m.reasoning_steps for m in metrics_list)
+    total_lines_added = sum(m.lines_added for m in metrics_list)
+    total_lines_removed = sum(m.lines_removed for m in metrics_list)
     patches_produced = sum(1 for m in metrics_list if m.patch_produced)
     total_wall_clock = sum(m.wall_clock_seconds for m in metrics_list)
     total_iterations = sum(m.iterations for m in metrics_list)
@@ -93,6 +107,10 @@ def aggregate_metrics(metrics_list: list[AgentMetrics]) -> dict:
         "avg_tokens_per_instance": total_tokens / n,
         "total_commands_executed": total_commands,
         "total_commands_timed_out": total_timeouts,
+        "total_reasoning_steps": total_reasoning,
+        "avg_reasoning_steps_per_instance": total_reasoning / n,
+        "total_lines_added": total_lines_added,
+        "total_lines_removed": total_lines_removed,
         "total_estimated_cost_usd": total_cost,
         "avg_cost_per_instance_usd": total_cost / n,
         "exit_reasons": _count_exit_reasons(metrics_list),
