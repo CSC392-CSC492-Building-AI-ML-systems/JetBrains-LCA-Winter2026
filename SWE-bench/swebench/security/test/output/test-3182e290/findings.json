@@ -1,0 +1,26 @@
+[
+  {
+    "file": "routes/users.py",
+    "line": 34,
+    "vuln_type": "SQL Injection",
+    "cwe_id": "CWE-89",
+    "severity": "critical",
+    "description": "Unsanitized user input from request.args['q'] is directly concatenated into a raw SQL query string: \"SELECT * FROM users WHERE username LIKE '%\" + query + \"%'\". An attacker can manipulate the query to dump the entire database, bypass authentication, or perform destructive operations."
+  },
+  {
+    "file": "routes/users.py",
+    "line": 42,
+    "vuln_type": "Cross-Site Scripting (XSS)",
+    "cwe_id": "CWE-79",
+    "severity": "high",
+    "description": "The user-supplied query parameter is wrapped with markupsafe.Markup(query), which marks it as safe HTML and bypasses Flask/Jinja2's auto-escaping. This allows an attacker to inject arbitrary HTML/JavaScript via the 'q' query parameter, resulting in reflected XSS that can steal session cookies, perform phishing, or execute malicious scripts in the victim's browser."
+  },
+  {
+    "file": "config.py",
+    "line": 4,
+    "vuln_type": "Hardcoded Secret",
+    "cwe_id": "CWE-798",
+    "severity": "high",
+    "description": "The Flask SECRET_KEY is hardcoded as a string literal ('super-secret-hardcoded-key-1234') in the source code. Anyone with repository access can read this value, allowing them to forge or tamper with Flask session cookies, potentially escalating privileges or impersonating any user."
+  }
+]
