@@ -1,0 +1,50 @@
+{
+  "instance_id": "project_f__track_1",
+  "project_id": "project_f",
+  "track": 1,
+  "model_name_or_path": "default",
+  "true_positives": 4,
+  "false_positives": 0,
+  "false_negatives": 0,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1": 1.0,
+  "vulnerabilities_found": 4,
+  "ground_truth_total": 4,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [
+    {
+      "file": "routes/admin.js",
+      "line": 8,
+      "vuln_type": "Missing Authentication for Critical Function",
+      "cwe_id": "CWE-306",
+      "severity": "critical",
+      "description": "The `DELETE /admin/users/:id` endpoint performs a destructive administrative action without any authentication or authorization check. Any unauthenticated attacker can invoke this route and delete arbitrary user accounts, resulting in full compromise of administrative integrity."
+    },
+    {
+      "file": "routes/upload.js",
+      "line": 18,
+      "vuln_type": "Unrestricted File Upload",
+      "cwe_id": "CWE-434",
+      "severity": "high",
+      "description": "The Multer upload handler is created with only disk storage and no `fileFilter`, extension allowlist, MIME validation, or size restrictions. An attacker can upload arbitrary files such as server-side scripts or active client content, which can lead to malware hosting, stored XSS, or code execution if uploaded content is later exposed by the application or surrounding infrastructure."
+    },
+    {
+      "file": "routes/auth.js",
+      "line": 11,
+      "vuln_type": "Open Redirect",
+      "cwe_id": "CWE-601",
+      "severity": "medium",
+      "description": "The `/login` route takes `req.query.next` and passes it directly to `res.redirect()` without validating that the target is a safe relative path or trusted origin. An attacker can craft a login URL that redirects users to an attacker-controlled site, enabling phishing and token theft workflows."
+    },
+    {
+      "file": "middleware/validate.js",
+      "line": 6,
+      "vuln_type": "Regular Expression Denial of Service (ReDoS)",
+      "cwe_id": "CWE-1333",
+      "severity": "medium",
+      "description": "The username validation regex `^([a-zA-Z0-9]+\\s*)+$` contains nested quantifiers that can trigger catastrophic backtracking on crafted input. Because this middleware runs on incoming requests, an attacker can send malicious usernames that consume excessive CPU and degrade or deny service."
+    }
+  ],
+  "exit_reason": "completed"
+}

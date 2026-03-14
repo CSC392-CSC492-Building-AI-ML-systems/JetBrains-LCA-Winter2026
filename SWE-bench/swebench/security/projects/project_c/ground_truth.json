@@ -1,0 +1,34 @@
+[
+  {
+    "file": "routes/users.js",
+    "line_start": 14,
+    "line_end": 14,
+    "cwe_id": "CWE-639",
+    "severity": "high",
+    "description": "IDOR (Insecure Direct Object Reference): the user profile endpoint uses req.params.id directly with no ownership check, allowing any authenticated user to read any other user's data by changing the ID in the URL."
+  },
+  {
+    "file": "routes/files.js",
+    "line_start": 12,
+    "line_end": 12,
+    "cwe_id": "CWE-22",
+    "severity": "critical",
+    "description": "Path traversal: req.params.filename is passed to path.join() without normalization or validation. An attacker can use '../../../etc/passwd' to read arbitrary files outside the intended directory."
+  },
+  {
+    "file": "routes/fetch.js",
+    "line_start": 9,
+    "line_end": 9,
+    "cwe_id": "CWE-918",
+    "severity": "high",
+    "description": "SSRF (Server-Side Request Forgery): user-supplied URL is passed directly to axios.get() without validation. An attacker can make the server fetch internal resources such as cloud metadata endpoints or internal services."
+  },
+  {
+    "file": "routes/admin.js",
+    "line_start": 15,
+    "line_end": 15,
+    "cwe_id": "CWE-78",
+    "severity": "critical",
+    "description": "OS command injection: user-supplied 'host' value is concatenated directly into a shell command string passed to exec(). An attacker can inject arbitrary commands using shell metacharacters."
+  }
+]

@@ -1,0 +1,63 @@
+{
+  "instance_id": "project_a__track_1",
+  "model_name_or_path": "codex-default",
+  "start_time": 1773445427.422413,
+  "end_time": 1773445476.082311,
+  "wall_clock_seconds": 48.659897804260254,
+  "iterations": 1,
+  "input_tokens": 68323,
+  "output_tokens": 2237,
+  "total_tokens": 70560,
+  "commands_executed": 7,
+  "commands_timed_out": 0,
+  "reasoning_steps": 0,
+  "exit_reason": "completed",
+  "patch_produced": true,
+  "patch_size_bytes": 74,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "estimated_cost_usd": 0.0,
+  "track": 1,
+  "vulnerabilities_found": 4,
+  "true_positives": 3,
+  "false_positives": 1,
+  "false_negatives": 0,
+  "precision": 0.75,
+  "recall": 1.0,
+  "f1": 0.8571,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [
+    {
+      "file": "routes/users.py",
+      "line": 34,
+      "vuln_type": "SQL Injection",
+      "cwe_id": "CWE-89",
+      "severity": "critical",
+      "description": "The `q` request parameter is concatenated directly into a raw SQL statement: `SELECT * FROM users WHERE username LIKE '%\" + query + \"%''`. An attacker can inject arbitrary SQL through `q`, which can expose, modify, or destroy database contents."
+    },
+    {
+      "file": "routes/users.py",
+      "line": 42,
+      "vuln_type": "Reflected XSS",
+      "cwe_id": "CWE-79",
+      "severity": "high",
+      "description": "User-controlled input from `request.args.get(\"q\")` is wrapped with `Markup(query)`, explicitly marking it as trusted HTML before rendering. That disables Jinja escaping for `{{ query }}` and allows attackers to inject script content into the response."
+    },
+    {
+      "file": "config.py",
+      "line": 4,
+      "vuln_type": "Hardcoded Secret",
+      "cwe_id": "CWE-798",
+      "severity": "high",
+      "description": "The Flask `SECRET_KEY` is hardcoded in source code. Anyone with repository or image access can recover it and forge or tamper with signed session cookies, undermining the application's session integrity."
+    },
+    {
+      "file": "routes/users.py",
+      "line": 29,
+      "vuln_type": "Missing Authentication for Sensitive Endpoint",
+      "cwe_id": "CWE-306",
+      "severity": "medium",
+      "description": "The `/users/search` endpoint performs a database-backed user lookup and returns usernames and email addresses, but it does not verify that the requester is authenticated or authorized. Because the route is directly reachable without checking `session`, any unauthenticated user can enumerate account data."
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+[
+  {
+    "instance_id": "project_e",
+    "cwe_id": "CWE-94",
+    "file": "views/render.py",
+    "line_start": 15,
+    "line_end": 17,
+    "severity": "critical",
+    "description": "Server-side template injection: user input passed directly to Template() and rendered",
+    "fix_hint": "Never pass user-supplied strings to Template(). Use a static template with context variables instead."
+  },
+  {
+    "instance_id": "project_e",
+    "cwe_id": "CWE-502",
+    "file": "api/import_data.py",
+    "line_start": 20,
+    "line_end": 20,
+    "severity": "critical",
+    "description": "Insecure deserialization: pickle.loads() called on user-supplied base64-decoded data",
+    "fix_hint": "Never deserialize user-supplied data with pickle. Use JSON or a safe schema-validated format."
+  },
+  {
+    "instance_id": "project_e",
+    "cwe_id": "CWE-611",
+    "file": "api/upload.py",
+    "line_start": 19,
+    "line_end": 19,
+    "severity": "high",
+    "description": "XXE: lxml XMLParser with default settings allows external entity expansion",
+    "fix_hint": "Use etree.XMLParser(resolve_entities=False, no_network=True) to disable external entities."
+  },
+  {
+    "instance_id": "project_e",
+    "cwe_id": "CWE-915",
+    "file": "api/users.py",
+    "line_start": 20,
+    "line_end": 21,
+    "severity": "high",
+    "description": "Mass assignment: entire request dict applied to user model with setattr, allowing privilege escalation",
+    "fix_hint": "Use an explicit allowlist of fields that users are permitted to update."
+  }
+]

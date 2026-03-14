@@ -1,0 +1,50 @@
+{
+  "instance_id": "project_b__track_1",
+  "project_id": "project_b",
+  "track": 1,
+  "model_name_or_path": "default",
+  "true_positives": 3,
+  "false_positives": 1,
+  "false_negatives": 0,
+  "precision": 0.75,
+  "recall": 1.0,
+  "f1": 0.8571,
+  "vulnerabilities_found": 4,
+  "ground_truth_total": 3,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [
+    {
+      "file": "app.py",
+      "line": 10,
+      "vuln_type": "Hardcoded Cryptographic Key",
+      "cwe_id": "CWE-321",
+      "severity": "high",
+      "description": "The Flask `SECRET_KEY` falls back to the fixed value `dev-key` when the environment variable is unset. Flask signs client-side session cookies with this key, so an attacker who knows the default can forge a session containing an arbitrary `user_id` and impersonate other users."
+    },
+    {
+      "file": "routes/auth.py",
+      "line": 25,
+      "vuln_type": "Authentication Bypass",
+      "cwe_id": "CWE-755",
+      "severity": "critical",
+      "description": "The login handler fails open: any exception during authentication causes `authenticated = True` in the `except Exception` block. A database error or other runtime failure would therefore grant a valid logged-in session without correct credentials."
+    },
+    {
+      "file": "routes/auth.py",
+      "line": 22,
+      "vuln_type": "Observable Timing Discrepancy",
+      "cwe_id": "CWE-208",
+      "severity": "medium",
+      "description": "Password hashes are compared with a normal `==` string comparison instead of a constant-time comparison such as `hmac.compare_digest`. This can leak timing differences that help an attacker incrementally test guesses against the stored hash."
+    },
+    {
+      "file": "models.py",
+      "line": 17,
+      "vuln_type": "Weak Password Hashing",
+      "cwe_id": "CWE-916",
+      "severity": "high",
+      "description": "User passwords are hashed with unsalted MD5. MD5 is cryptographically broken and extremely fast to brute-force, so leaked password hashes can be cracked efficiently. Password storage should use a dedicated password hashing algorithm such as Argon2, scrypt, or bcrypt."
+    }
+  ],
+  "exit_reason": "completed"
+}

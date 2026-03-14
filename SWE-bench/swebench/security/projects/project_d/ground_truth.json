@@ -1,0 +1,42 @@
+[
+  {
+    "instance_id": "project_d",
+    "file": "auth/tokens.py",
+    "line_start": 17,
+    "line_end": 19,
+    "cwe_id": "CWE-200",
+    "severity": "medium",
+    "description": "PII exposure: user email, phone, and address are embedded in the JWT payload without encryption. JWT payloads are only base64-encoded, so anyone who intercepts or decodes the token can read the user's private data.",
+    "fix_hint": "Remove PII fields (email, phone, address) from the JWT payload. Store only non-sensitive identifiers (e.g., user id and role). Retrieve PII from the database on the server side when needed."
+  },
+  {
+    "instance_id": "project_d",
+    "file": "routes/auth.py",
+    "line_start": 22,
+    "line_end": 23,
+    "cwe_id": "CWE-640",
+    "severity": "medium",
+    "description": "Weak password reset: the reset token is predictably derived from the user id concatenated with a static string ('reset'), making it trivially forgeable. Tokens are never expired or invalidated after use.",
+    "fix_hint": "Generate reset tokens using secrets.token_urlsafe(32). Store the token alongside an expiry timestamp and delete the token from the store after it has been used once."
+  },
+  {
+    "instance_id": "project_d",
+    "file": "routes/posts.py",
+    "line_start": 16,
+    "line_end": 27,
+    "cwe_id": "CWE-352",
+    "severity": "medium",
+    "description": "Missing CSRF protection: the state-changing POST endpoint /posts/<id>/delete performs a destructive action without verifying a CSRF token. Any malicious page can trigger this endpoint on behalf of an authenticated user by submitting a cross-origin form.",
+    "fix_hint": "Integrate Flask-WTF or itsdangerous to generate and validate a CSRF token on every state-changing request. Reject requests that do not present a valid token matching the user's session."
+  },
+  {
+    "instance_id": "project_d",
+    "file": "routes/admin.py",
+    "line_start": 14,
+    "line_end": 14,
+    "cwe_id": "CWE-862",
+    "severity": "high",
+    "description": "Missing server-side authorization: the admin role check reads the 'role' field from the client-supplied request body instead of the server-side JWT or session. Any client can send {\"role\": \"admin\"} to bypass the check entirely.",
+    "fix_hint": "Decode the Authorization JWT on the server side and extract the role from the verified token claims. Never trust role or permission data supplied by the client in the request body."
+  }
+]

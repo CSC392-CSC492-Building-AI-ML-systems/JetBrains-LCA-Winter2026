@@ -1,0 +1,26 @@
+[
+  {
+    "file": "routes/users.py",
+    "line_start": 34,
+    "line_end": 34,
+    "cwe_id": "CWE-89",
+    "severity": "critical",
+    "description": "SQL injection: unsanitized user input from request.args is directly concatenated into a raw SQL query string, allowing attackers to manipulate the query."
+  },
+  {
+    "file": "routes/users.py",
+    "line_start": 42,
+    "line_end": 42,
+    "cwe_id": "CWE-79",
+    "severity": "high",
+    "description": "Reflected XSS: user-supplied query parameter is wrapped with Markup() which marks it as safe HTML, bypassing Flask's auto-escaping and allowing script injection in the rendered response."
+  },
+  {
+    "file": "config.py",
+    "line_start": 4,
+    "line_end": 4,
+    "cwe_id": "CWE-798",
+    "severity": "high",
+    "description": "Hardcoded secret key in source code. The Flask SECRET_KEY is committed as a string literal, making it visible to anyone with repository access and invalidating session security."
+  }
+]

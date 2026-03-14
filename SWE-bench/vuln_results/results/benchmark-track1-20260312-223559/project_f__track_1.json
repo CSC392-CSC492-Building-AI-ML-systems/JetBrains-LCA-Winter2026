@@ -1,0 +1,66 @@
+{
+  "instance_id": "project_f__track_1",
+  "project_id": "project_f",
+  "track": 1,
+  "model_name_or_path": "sonnet",
+  "true_positives": 4,
+  "false_positives": 2,
+  "false_negatives": 0,
+  "precision": 0.6667,
+  "recall": 1.0,
+  "f1": 0.8,
+  "vulnerabilities_found": 6,
+  "ground_truth_total": 4,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [
+    {
+      "file": "routes/admin.js",
+      "line": 8,
+      "vuln_type": "Missing Authentication",
+      "cwe_id": "CWE-306",
+      "severity": "critical",
+      "description": "The DELETE /admin/users/:id endpoint performs destructive user deletion with no authentication or authorization check. Any unauthenticated attacker can send a DELETE request with any user ID to delete that user record. There is no session check, JWT validation, or any middleware to restrict access."
+    },
+    {
+      "file": "routes/upload.js",
+      "line": 17,
+      "vuln_type": "Unrestricted File Upload",
+      "cwe_id": "CWE-434",
+      "severity": "high",
+      "description": "The multer storage configuration has no fileFilter function, meaning there is no restriction on file extension or MIME type. An attacker can upload any file type including .php, .js, .html, or other executable/dangerous files. If the uploads directory is web-accessible or processed in any way, this could lead to remote code execution or stored XSS."
+    },
+    {
+      "file": "routes/upload.js",
+      "line": 11,
+      "vuln_type": "Path Traversal",
+      "cwe_id": "CWE-22",
+      "severity": "high",
+      "description": "The filename is constructed by concatenating Date.now() with the original filename from the client (file.originalname) without sanitization. A malicious filename containing path traversal sequences (e.g., '../../etc/passwd') could allow writing files outside the intended uploads directory."
+    },
+    {
+      "file": "routes/admin.js",
+      "line": 14,
+      "vuln_type": "Missing Authentication",
+      "cwe_id": "CWE-306",
+      "severity": "medium",
+      "description": "The GET /admin/stats endpoint lacks any authentication or authorization middleware, exposing potentially sensitive administrative statistics (user count, post count) to unauthenticated users."
+    },
+    {
+      "file": "routes/auth.js",
+      "line": 11,
+      "vuln_type": "Open Redirect",
+      "cwe_id": "CWE-601",
+      "severity": "medium",
+      "description": "The GET /login endpoint takes the 'next' query parameter and passes it directly to res.redirect() without any origin or path validation. An attacker can craft a URL like /login?next=https://evil.com to redirect users to a phishing site after login."
+    },
+    {
+      "file": "middleware/validate.js",
+      "line": 6,
+      "vuln_type": "ReDoS",
+      "cwe_id": "CWE-1333",
+      "severity": "medium",
+      "description": "The username validation regex /^([a-zA-Z0-9]+\\s*)+$/ uses a nested quantifier pattern that causes catastrophic backtracking. An attacker can send a crafted string like 'aaaaaaaaaaaaaaaaaaaaa!' to cause the regex engine to spend exponential time evaluating, pegging CPU at 100% and denying service to other users."
+    }
+  ],
+  "exit_reason": "completed"
+}

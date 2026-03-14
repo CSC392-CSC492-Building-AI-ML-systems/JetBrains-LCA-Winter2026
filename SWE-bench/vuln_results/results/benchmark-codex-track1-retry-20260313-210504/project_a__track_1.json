@@ -1,0 +1,58 @@
+{
+  "instance_id": "project_a__track_1",
+  "project_id": "project_a",
+  "track": 1,
+  "model_name_or_path": "default",
+  "true_positives": 3,
+  "false_positives": 2,
+  "false_negatives": 0,
+  "precision": 0.6,
+  "recall": 1.0,
+  "f1": 0.75,
+  "vulnerabilities_found": 5,
+  "ground_truth_total": 3,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [
+    {
+      "file": "config.py",
+      "line": 4,
+      "vuln_type": "Hardcoded Secret Key",
+      "cwe_id": "CWE-798",
+      "severity": "high",
+      "description": "The Flask `SECRET_KEY` is hardcoded in source. Anyone who obtains the code can forge or tamper with signed session cookies, undermining the integrity of the application's session mechanism."
+    },
+    {
+      "file": "routes/users.py",
+      "line": 34,
+      "vuln_type": "SQL Injection",
+      "cwe_id": "CWE-89",
+      "severity": "critical",
+      "description": "User input from the `q` query parameter is concatenated directly into a raw SQL string (`SELECT * FROM users WHERE username LIKE '%\" + query + \"%''`). An attacker can inject SQL to alter the query, bypass intended filtering, and potentially extract or modify database contents."
+    },
+    {
+      "file": "routes/users.py",
+      "line": 42,
+      "vuln_type": "Reflected Cross-Site Scripting (XSS)",
+      "cwe_id": "CWE-79",
+      "severity": "high",
+      "description": "The `q` parameter is wrapped with `Markup(query)` before rendering, which disables Jinja's escaping and causes attacker-controlled HTML/JavaScript to be reflected into the response. This allows execution of arbitrary script in a victim's browser."
+    },
+    {
+      "file": "routes/users.py",
+      "line": 30,
+      "vuln_type": "Missing Authentication for Sensitive Endpoint",
+      "cwe_id": "CWE-306",
+      "severity": "medium",
+      "description": "The `/users/search` endpoint exposes usernames and email addresses but performs no authentication or authorization check before returning results. Any unauthenticated user can enumerate account data, which is an access-control failure and a privacy issue."
+    },
+    {
+      "file": "routes/auth.py",
+      "line": 39,
+      "vuln_type": "CSRF on Logout",
+      "cwe_id": "CWE-352",
+      "severity": "low",
+      "description": "Logout is performed through a state-changing GET endpoint with no CSRF protection. A third-party site can force a victim to log out by causing the browser to request `/logout`, which is a classic cross-site request forgery pattern."
+    }
+  ],
+  "exit_reason": "completed"
+}

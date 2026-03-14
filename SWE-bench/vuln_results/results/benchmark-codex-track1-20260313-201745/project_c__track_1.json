@@ -1,0 +1,58 @@
+{
+  "instance_id": "project_c__track_1",
+  "project_id": "project_c",
+  "track": 1,
+  "model_name_or_path": "default",
+  "true_positives": 3,
+  "false_positives": 2,
+  "false_negatives": 1,
+  "precision": 0.6,
+  "recall": 0.75,
+  "f1": 0.6667,
+  "vulnerabilities_found": 5,
+  "ground_truth_total": 4,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [
+    {
+      "file": "routes/admin.js",
+      "line": 14,
+      "vuln_type": "OS Command Injection",
+      "cwe_id": "CWE-78",
+      "severity": "critical",
+      "description": "The `host` value from the request body is concatenated directly into a shell command passed to `exec()`. An authenticated attacker can inject shell metacharacters and execute arbitrary commands on the server."
+    },
+    {
+      "file": "routes/files.js",
+      "line": 12,
+      "vuln_type": "Path Traversal",
+      "cwe_id": "CWE-22",
+      "severity": "critical",
+      "description": "The `filename` route parameter is joined into a filesystem path without validation or confinement to `FILES_DIR`. An attacker can supply traversal sequences such as `../../../etc/passwd` to read arbitrary files from the server."
+    },
+    {
+      "file": "routes/fetch.js",
+      "line": 15,
+      "vuln_type": "Server-Side Request Forgery",
+      "cwe_id": "CWE-918",
+      "severity": "high",
+      "description": "The application passes a user-controlled `url` directly to `axios.get()` with no allowlist or network restrictions. An authenticated attacker can force the server to send requests to internal services, cloud metadata endpoints, or other protected network locations."
+    },
+    {
+      "file": "routes/users.js",
+      "line": 14,
+      "vuln_type": "Insecure Direct Object Reference",
+      "cwe_id": "CWE-639",
+      "severity": "high",
+      "description": "The profile endpoint uses `req.params.id` to select and return a user record without checking that the requested ID belongs to the current session user. Any authenticated user can retrieve other users' profile data by changing the URL parameter."
+    },
+    {
+      "file": "routes/admin.js",
+      "line": 9,
+      "vuln_type": "Missing Authorization",
+      "cwe_id": "CWE-862",
+      "severity": "high",
+      "description": "The `/api/admin/ping` endpoint is intended as an administrative function, but it only enforces `requireAuth` and never verifies that the caller has an admin role. Any authenticated user can access privileged functionality and make the server probe arbitrary hosts."
+    }
+  ],
+  "exit_reason": "completed"
+}

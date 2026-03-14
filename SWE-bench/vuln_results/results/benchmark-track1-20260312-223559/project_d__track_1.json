@@ -1,0 +1,82 @@
+{
+  "instance_id": "project_d__track_1",
+  "project_id": "project_d",
+  "track": 1,
+  "model_name_or_path": "sonnet",
+  "true_positives": 4,
+  "false_positives": 4,
+  "false_negatives": 0,
+  "precision": 0.5,
+  "recall": 1.0,
+  "f1": 0.6667,
+  "vulnerabilities_found": 8,
+  "ground_truth_total": 4,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [
+    {
+      "file": "auth/tokens.py",
+      "line": 5,
+      "vuln_type": "Hardcoded Secret Key",
+      "cwe_id": "CWE-798",
+      "severity": "high",
+      "description": "The JWT signing secret is hardcoded as the string 'super-secret-key' directly in source code. Anyone with access to the source can forge arbitrary JWT tokens, bypassing all authentication."
+    },
+    {
+      "file": "auth/tokens.py",
+      "line": 17,
+      "vuln_type": "Sensitive Data Exposure / PII in JWT",
+      "cwe_id": "CWE-200",
+      "severity": "medium",
+      "description": "PII \u2014 user email, phone, and address \u2014 is embedded in the JWT payload without encryption. JWT payloads are only base64-encoded, not encrypted, so anyone who intercepts or decodes the token can read the user's private data in plaintext."
+    },
+    {
+      "file": "routes/auth.py",
+      "line": 22,
+      "vuln_type": "Predictable Password Reset Token",
+      "cwe_id": "CWE-640",
+      "severity": "high",
+      "description": "The password reset token is trivially predictable: it is constructed by concatenating the user's numeric ID with the static string 'reset' (e.g., '1reset', '2reset'). An attacker who knows any user ID can forge a valid reset token and take over any account."
+    },
+    {
+      "file": "routes/auth.py",
+      "line": 9,
+      "vuln_type": "Insufficient Session Expiration / No Token Invalidation",
+      "cwe_id": "CWE-613",
+      "severity": "medium",
+      "description": "PASSWORD_RESET_TOKENS is an in-memory dictionary with no expiry timestamps. Tokens persist for the lifetime of the process and are never deleted after a successful password reset, allowing tokens to be reused indefinitely."
+    },
+    {
+      "file": "routes/posts.py",
+      "line": 16,
+      "vuln_type": "Missing CSRF Protection",
+      "cwe_id": "CWE-352",
+      "severity": "medium",
+      "description": "The state-changing POST endpoint /posts/<id>/delete performs a destructive database action without verifying any CSRF token. A malicious cross-origin page can trigger post deletion on behalf of an authenticated user."
+    },
+    {
+      "file": "routes/admin.py",
+      "line": 14,
+      "vuln_type": "Broken Authorization / Client-Controlled Role",
+      "cwe_id": "CWE-862",
+      "severity": "high",
+      "description": "The /admin/users GET endpoint reads the 'role' field directly from the client-supplied JSON request body instead of a server-side session or verified JWT. Any unauthenticated caller can send {\"role\": \"admin\"} to bypass the check and enumerate all user accounts."
+    },
+    {
+      "file": "routes/admin.py",
+      "line": 23,
+      "vuln_type": "Broken Authorization / Client-Controlled Role",
+      "cwe_id": "CWE-862",
+      "severity": "high",
+      "description": "The DELETE /admin/users/<user_id> endpoint has the same client-controlled role bypass \u2014 the role is read from the request body, allowing any caller to delete arbitrary user accounts by passing {\"role\": \"admin\"}."
+    },
+    {
+      "file": "routes/auth.py",
+      "line": 17,
+      "vuln_type": "User Enumeration",
+      "cwe_id": "CWE-203",
+      "severity": "low",
+      "description": "The /forgot-password endpoint returns a 404 when an email is not registered and a 200 with a token when it is. This allows unauthenticated attackers to enumerate valid registered email addresses by observing the differing responses."
+    }
+  ],
+  "exit_reason": "completed"
+}

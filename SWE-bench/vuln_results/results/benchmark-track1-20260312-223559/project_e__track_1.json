@@ -1,0 +1,114 @@
+{
+  "instance_id": "project_e__track_1",
+  "project_id": "project_e",
+  "track": 1,
+  "model_name_or_path": "sonnet",
+  "true_positives": 4,
+  "false_positives": 8,
+  "false_negatives": 0,
+  "precision": 0.3333,
+  "recall": 1.0,
+  "f1": 0.5,
+  "vulnerabilities_found": 12,
+  "ground_truth_total": 4,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [
+    {
+      "file": "views/render.py",
+      "line": 15,
+      "vuln_type": "Server-Side Template Injection",
+      "cwe_id": "CWE-94",
+      "severity": "critical",
+      "description": "User-supplied input from request.POST['template'] is passed directly to Django's Template() constructor and rendered with render(). An attacker can inject Django template tags to read sensitive settings, traverse object attributes (e.g., {{ request.user.password }}), or exploit callable gadget chains to achieve information disclosure or potentially remote code execution."
+    },
+    {
+      "file": "api/import_data.py",
+      "line": 19,
+      "vuln_type": "Insecure Deserialization",
+      "cwe_id": "CWE-502",
+      "severity": "critical",
+      "description": "pickle.loads() is called on attacker-controlled data (base64-decoded from the 'data' POST parameter) without any validation or signature verification. Because pickle can instantiate arbitrary Python objects via __reduce__, this allows remote code execution \u2014 e.g., by supplying a pickle payload that calls os.system() or subprocess.Popen()."
+    },
+    {
+      "file": "api/upload.py",
+      "line": 18,
+      "vuln_type": "XML External Entity (XXE)",
+      "cwe_id": "CWE-611",
+      "severity": "high",
+      "description": "lxml's etree.XMLParser() is instantiated with default settings, which allow external entity expansion. An attacker can submit an XML payload containing an XXE declaration (e.g., <!ENTITY xxe SYSTEM 'file:///etc/passwd'>) to read arbitrary local files or trigger Server-Side Request Forgery (SSRF) via external DTD references."
+    },
+    {
+      "file": "api/users.py",
+      "line": 20,
+      "vuln_type": "Mass Assignment / Privilege Escalation",
+      "cwe_id": "CWE-915",
+      "severity": "high",
+      "description": "The update_user endpoint iterates over all keys in the request JSON body and applies them to the User model via setattr() without any field allowlist. An attacker can submit {\"is_staff\": true, \"is_superuser\": true, \"password\": \"attacker_hash\"} to escalate privileges or hijack any user account."
+    },
+    {
+      "file": "api/users.py",
+      "line": 16,
+      "vuln_type": "Insecure Direct Object Reference (IDOR)",
+      "cwe_id": "CWE-639",
+      "severity": "high",
+      "description": "The update_user endpoint accepts a user_id path parameter and updates that user's record without verifying that the requesting party is authenticated or authorized to modify that specific user. Any unauthenticated request can update any user's data by simply changing the user_id in the URL."
+    },
+    {
+      "file": "myapp/settings.py",
+      "line": 2,
+      "vuln_type": "Hardcoded Secret Key",
+      "cwe_id": "CWE-798",
+      "severity": "high",
+      "description": "The Django SECRET_KEY is hardcoded as a static, predictable string ('django-insecure-project-e-bench-key'). This key is used to sign session cookies and CSRF tokens. An attacker who knows or guesses the key can forge signed cookies, potentially bypassing authentication and session integrity protections."
+    },
+    {
+      "file": "api/users.py",
+      "line": 14,
+      "vuln_type": "Missing CSRF Protection",
+      "cwe_id": "CWE-352",
+      "severity": "medium",
+      "description": "The update_user endpoint is decorated with @csrf_exempt, disabling Django's built-in CSRF protection. Combined with the mass assignment vulnerability, a cross-site request forgery attack could trick an authenticated user's browser into submitting a privilege escalation payload."
+    },
+    {
+      "file": "api/import_data.py",
+      "line": 8,
+      "vuln_type": "Missing CSRF Protection",
+      "cwe_id": "CWE-352",
+      "severity": "medium",
+      "description": "The import_objects endpoint is decorated with @csrf_exempt. Any webpage the victim visits can POST a malicious pickle payload to trigger the insecure deserialization vulnerability (CWE-502) on behalf of the victim."
+    },
+    {
+      "file": "api/upload.py",
+      "line": 6,
+      "vuln_type": "Missing CSRF Protection",
+      "cwe_id": "CWE-352",
+      "severity": "medium",
+      "description": "The upload_xml endpoint is decorated with @csrf_exempt, removing CSRF protection. This amplifies the XXE vulnerability (CWE-611) by allowing cross-origin requests to trigger it without requiring session token theft."
+    },
+    {
+      "file": "views/render.py",
+      "line": 13,
+      "vuln_type": "Missing Authentication",
+      "cwe_id": "CWE-287",
+      "severity": "medium",
+      "description": "The render_preview endpoint has no authentication check. Any unauthenticated attacker can access the template injection vulnerability (CWE-94) directly without needing any credentials."
+    },
+    {
+      "file": "myapp/settings.py",
+      "line": 1,
+      "vuln_type": "Missing Security Middleware / Headers",
+      "cwe_id": "CWE-693",
+      "severity": "medium",
+      "description": "The Django MIDDLEWARE setting is completely absent from settings.py. This means Django's SecurityMiddleware (which sets HSTS, X-Content-Type-Options, X-Frame-Options headers), CsrfViewMiddleware, SessionMiddleware, and AuthenticationMiddleware are all disabled. The application is missing all standard HTTP security headers."
+    },
+    {
+      "file": "myapp/settings.py",
+      "line": 4,
+      "vuln_type": "Overly Permissive ALLOWED_HOSTS",
+      "cwe_id": "CWE-183",
+      "severity": "low",
+      "description": "ALLOWED_HOSTS is set to [\"*\"], permitting requests with any Host header. This can facilitate Host header injection attacks (e.g., password-reset link poisoning) and bypasses Django's host validation safeguard."
+    }
+  ],
+  "exit_reason": "completed"
+}

@@ -1,0 +1,26 @@
+[
+  {
+    "file": "routes/auth.py",
+    "line_start": 22,
+    "line_end": 22,
+    "cwe_id": "CWE-208",
+    "severity": "medium",
+    "description": "Timing attack: direct string equality comparison (==) on password hashes leaks timing information that allows attackers to enumerate valid hashes. Should use hmac.compare_digest()."
+  },
+  {
+    "file": "routes/auth.py",
+    "line_start": 27,
+    "line_end": 29,
+    "cwe_id": "CWE-755",
+    "severity": "critical",
+    "description": "Fail-open exception handling: a bare 'except Exception' block sets authenticated=True on any error, meaning a database failure or runtime exception grants access without valid credentials."
+  },
+  {
+    "file": "models.py",
+    "line_start": 17,
+    "line_end": 17,
+    "cwe_id": "CWE-916",
+    "severity": "high",
+    "description": "Weak password hashing: MD5 is cryptographically broken, extremely fast to brute-force, and unsuitable for password storage. Should use bcrypt, scrypt, or argon2 instead."
+  }
+]

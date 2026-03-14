@@ -1,0 +1,90 @@
+{
+  "instance_id": "project_c__track_1",
+  "project_id": "project_c",
+  "track": 1,
+  "model_name_or_path": "sonnet",
+  "true_positives": 3,
+  "false_positives": 6,
+  "false_negatives": 1,
+  "precision": 0.3333,
+  "recall": 0.75,
+  "f1": 0.4615,
+  "vulnerabilities_found": 9,
+  "ground_truth_total": 4,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [
+    {
+      "file": "routes/admin.js",
+      "line": 14,
+      "vuln_type": "OS Command Injection",
+      "cwe_id": "CWE-78",
+      "severity": "critical",
+      "description": "The user-supplied 'host' value is concatenated directly into a shell command string passed to child_process.exec(). An attacker can inject arbitrary shell commands using metacharacters such as semicolons, pipes, or backticks (e.g., 'localhost; cat /etc/passwd'), resulting in full server compromise."
+    },
+    {
+      "file": "routes/files.js",
+      "line": 12,
+      "vuln_type": "Path Traversal",
+      "cwe_id": "CWE-22",
+      "severity": "critical",
+      "description": "req.params.filename is concatenated with path.join() directly into a file path without normalization or boundary validation. An attacker can supply '../../../etc/passwd' to read arbitrary files outside the intended FILES_DIR directory, potentially exposing sensitive system files."
+    },
+    {
+      "file": "routes/fetch.js",
+      "line": 15,
+      "vuln_type": "SSRF",
+      "cwe_id": "CWE-918",
+      "severity": "high",
+      "description": "The POST /api/fetch endpoint passes user-supplied 'url' directly to axios.get() with no validation or allowlist. An attacker can make the server issue requests to internal services, cloud metadata endpoints (e.g., http://169.254.169.254/latest/meta-data/), or other internally accessible systems."
+    },
+    {
+      "file": "routes/users.js",
+      "line": 14,
+      "vuln_type": "IDOR",
+      "cwe_id": "CWE-639",
+      "severity": "high",
+      "description": "The GET /api/users/:id endpoint returns full user profile data (including email and role) without verifying the requesting user owns that resource. Any authenticated user can enumerate and read any other user's profile by incrementing the ID."
+    },
+    {
+      "file": "routes/admin.js",
+      "line": 9,
+      "vuln_type": "Missing Authorization",
+      "cwe_id": "CWE-285",
+      "severity": "high",
+      "description": "The /api/admin/ping endpoint only checks requireAuth (session exists) but does not verify the user has an admin role. Any authenticated non-admin user can invoke this privileged endpoint, which is also vulnerable to OS command injection."
+    },
+    {
+      "file": "app.js",
+      "line": 14,
+      "vuln_type": "Hardcoded Secret",
+      "cwe_id": "CWE-798",
+      "severity": "high",
+      "description": "The express-session secret falls back to the hardcoded value 'dev-secret' when the SESSION_SECRET environment variable is not set. This weak, publicly known secret allows an attacker to forge or tamper with session cookies, leading to session hijacking and authentication bypass."
+    },
+    {
+      "file": "app.js",
+      "line": 12,
+      "vuln_type": "Missing CSRF Protection",
+      "cwe_id": "CWE-352",
+      "severity": "high",
+      "description": "No CSRF protection middleware (e.g., csurf) is configured anywhere in the application. State-changing POST endpoints lack CSRF tokens, allowing an attacker to trick an authenticated user's browser into performing unintended actions via a malicious third-party site."
+    },
+    {
+      "file": "app.js",
+      "line": 12,
+      "vuln_type": "Insecure Session Configuration",
+      "cwe_id": "CWE-614",
+      "severity": "medium",
+      "description": "The session configuration does not set the 'secure' cookie flag (requires HTTPS), 'httpOnly' flag to prevent JavaScript access, or 'sameSite' attribute to mitigate CSRF. Session cookies can be intercepted over HTTP or stolen via XSS."
+    },
+    {
+      "file": "Dockerfile",
+      "line": 1,
+      "vuln_type": "Cleartext Transmission",
+      "cwe_id": "CWE-319",
+      "severity": "medium",
+      "description": "The application binds to port 3000 over plain HTTP with no TLS termination configured. All traffic including session cookies and credentials is transmitted in cleartext, making it vulnerable to network interception."
+    }
+  ],
+  "exit_reason": "completed"
+}
