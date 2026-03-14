@@ -264,6 +264,8 @@ def _extract_findings(text: str, logger: logging.Logger) -> list[dict]:
 
 def _parse_json_array(text: str, logger: logging.Logger) -> list[dict] | None:
     """Try to parse the first JSON array from text. Returns None on failure."""
+    import re as _re
+
     # Find the opening bracket
     start = text.find("[")
     if start == -1:
@@ -276,11 +278,28 @@ def _parse_json_array(text: str, logger: logging.Logger) -> list[dict] | None:
         elif ch == "]":
             depth -= 1
             if depth == 0:
+                candidate = text[start : i + 1]
                 try:
-                    data = json.loads(text[start : i + 1])
+                    data = json.loads(candidate)
                     if isinstance(data, list):
                         return data
                 except json.JSONDecodeError as e:
+                    # Retry after replacing invalid escape sequences.
+                    # Models sometimes emit bare backslashes in description strings
+                    # (e.g. "use \n" literally, or Windows paths like routes\users.py).
+                    # Replace any \ not followed by a valid JSON escape character.
+                    cleaned = _re.sub(
+                        r'\\(?!["\\/bfnrtu])', r'\\\\', candidate
+                    )
+                    try:
+                        data = json.loads(cleaned)
+                        if isinstance(data, list):
+                            logger.warning(
+                                "Findings JSON had invalid escapes — fixed automatically."
+                            )
+                            return data
+                    except json.JSONDecodeError:
+                        pass
                     logger.warning(f"Failed to parse findings JSON: {e}")
                     return None
     return None

@@ -1,0 +1,74 @@
+{
+  "instance_id": "project_e__track_1",
+  "project_id": "project_e",
+  "track": 1,
+  "model_name_or_path": "default",
+  "true_positives": 3,
+  "false_positives": 4,
+  "false_negatives": 1,
+  "precision": 0.4286,
+  "recall": 0.75,
+  "f1": 0.5455,
+  "vulnerabilities_found": 7,
+  "ground_truth_total": 4,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [
+    {
+      "file": "views/render.py",
+      "line": 15,
+      "vuln_type": "Server-Side Template Injection",
+      "cwe_id": "CWE-1336",
+      "severity": "high",
+      "description": "The `/render/` endpoint compiles attacker-controlled input with `Template(user_template)` and then renders it with a server-side context. This lets an attacker inject Django template expressions, access request/context data, and potentially reach dangerous object attributes or gadget chains, resulting in sensitive data exposure and possible further compromise."
+    },
+    {
+      "file": "api/import_data.py",
+      "line": 20,
+      "vuln_type": "Insecure Deserialization",
+      "cwe_id": "CWE-502",
+      "severity": "critical",
+      "description": "The `/api/import/` endpoint base64-decodes untrusted input and passes it directly to `pickle.loads()`. Python pickle deserialization is code-executing by design, so a crafted payload can run arbitrary commands on the server and fully compromise the application."
+    },
+    {
+      "file": "api/upload.py",
+      "line": 19,
+      "vuln_type": "XML External Entity Injection",
+      "cwe_id": "CWE-611",
+      "severity": "high",
+      "description": "The `/api/upload/` endpoint parses attacker-supplied XML with `lxml.etree.XMLParser()` using unsafe defaults and then calls `etree.fromstring(...)`. This allows XXE payloads to resolve external entities, which can disclose local files or trigger server-side requests to internal or external systems."
+    },
+    {
+      "file": "api/users.py",
+      "line": 19,
+      "vuln_type": "Insecure Direct Object Reference",
+      "cwe_id": "CWE-639",
+      "severity": "high",
+      "description": "The `/api/users/<user_id>/` endpoint fetches a user record directly from the URL parameter and updates it without any authentication or ownership/authorization check. Any caller who can reach the endpoint can modify arbitrary user accounts by choosing another user's numeric ID."
+    },
+    {
+      "file": "api/users.py",
+      "line": 20,
+      "vuln_type": "Mass Assignment",
+      "cwe_id": "CWE-915",
+      "severity": "critical",
+      "description": "The endpoint blindly iterates over all JSON keys from the request body and applies them with `setattr(user, key, value)`. An attacker can set sensitive model fields such as `is_staff`, `is_superuser`, `is_active`, or `password`, enabling privilege escalation and unauthorized account manipulation."
+    },
+    {
+      "file": "myapp/settings.py",
+      "line": 2,
+      "vuln_type": "Hardcoded Cryptographic Key",
+      "cwe_id": "CWE-321",
+      "severity": "medium",
+      "description": "The Django `SECRET_KEY` is hardcoded in source code. If the codebase is exposed or shared, attackers can use this key to forge or tamper with Django-signed data such as tokens, signed values, and any features that rely on the application's signing secret."
+    },
+    {
+      "file": "myapp/settings.py",
+      "line": 4,
+      "vuln_type": "Overly Permissive Host Validation",
+      "cwe_id": "CWE-16",
+      "severity": "low",
+      "description": "Setting `ALLOWED_HOSTS = [\"*\"]` disables Django's host header protection for all domains. In deployments behind proxies or in code paths that generate absolute URLs, this can enable host header poisoning and related cache poisoning or malicious link-generation attacks."
+    }
+  ],
+  "exit_reason": "completed"
+}

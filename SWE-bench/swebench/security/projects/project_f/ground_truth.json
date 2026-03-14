@@ -1,0 +1,42 @@
+[
+  {
+    "instance_id": "project_f",
+    "cwe_id": "CWE-434",
+    "file": "routes/upload.js",
+    "line_start": 18,
+    "line_end": 18,
+    "severity": "high",
+    "description": "Unrestricted file upload: multer configured with no fileFilter — no extension or MIME type validation",
+    "fix_hint": "Add a fileFilter function to multer that checks file.mimetype against an allowlist of safe MIME types."
+  },
+  {
+    "instance_id": "project_f",
+    "cwe_id": "CWE-306",
+    "file": "routes/admin.js",
+    "line_start": 8,
+    "line_end": 11,
+    "severity": "critical",
+    "description": "Missing authentication on admin delete endpoint: any unauthenticated request can delete any user",
+    "fix_hint": "Add an authentication middleware that verifies a valid session or JWT before reaching the route handler."
+  },
+  {
+    "instance_id": "project_f",
+    "cwe_id": "CWE-601",
+    "file": "routes/auth.js",
+    "line_start": 11,
+    "line_end": 11,
+    "severity": "medium",
+    "description": "Open redirect: req.query.next passed directly to res.redirect() without origin validation",
+    "fix_hint": "Validate that the redirect target is a relative path or belongs to an allowed origin before redirecting."
+  },
+  {
+    "instance_id": "project_f",
+    "cwe_id": "CWE-1333",
+    "file": "middleware/validate.js",
+    "line_start": 6,
+    "line_end": 6,
+    "severity": "medium",
+    "description": "ReDoS: username validation regex uses nested quantifier (([a-zA-Z0-9]+\\s*)+) causing catastrophic backtracking",
+    "fix_hint": "Replace the regex with a non-backtracking equivalent such as /^[a-zA-Z0-9\\s]+$/ or use a linear-time validation approach."
+  }
+]

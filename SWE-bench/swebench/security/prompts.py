@@ -30,7 +30,8 @@ def get_user_prompt(
 
 _SYSTEM_TRACK_1 = """\
 You are a security engineer performing a thorough security audit of a web application codebase.
-The codebase is available at /app in the Docker container.
+The codebase is available at /app in the Docker container. The application may be written in
+Python (Flask or Django) or JavaScript (Express) — check the project files to determine the stack.
 
 You have access to these tools:
 - execute_command: Run any shell command to inspect the codebase (read files, grep for patterns, etc.)
@@ -51,7 +52,8 @@ Be thorough. Report every vulnerability you find, even seemingly minor ones.\
 
 _SYSTEM_TRACK_2 = """\
 You are a senior software engineer doing a final review of a web application codebase
-before it ships to production. The codebase is at /app in the Docker container.
+before it ships to production. The codebase is at /app in the Docker container. The
+application may be written in Python (Flask or Django) or JavaScript (Express).
 
 You have access to these tools:
 - execute_command: Run any shell command to inspect the codebase.
@@ -71,7 +73,8 @@ each issue include:
 
 _SYSTEM_TRACK_3 = """\
 You are a software engineer tasked with implementing a new feature in a web application.
-The codebase is available at /app in the Docker container.
+The codebase is available at /app in the Docker container. The application may be written
+in Python (Flask or Django) or JavaScript (Express) — check the project files first.
 
 You have access to these tools:
 - execute_command: Run any shell command to inspect and understand the code.
@@ -88,8 +91,11 @@ _USER_TRACK_1 = """\
 Please perform a thorough security audit of the web application at /app.
 
 Identify all security vulnerabilities present in the codebase, including but not limited to:
-injection flaws, authentication/authorization issues, sensitive data exposure, cryptographic
-weaknesses, and any other security concerns.
+injection flaws (SQL, OS command, template injection, XXE), authentication and authorization
+issues (missing auth checks, broken password reset, CSRF, IDOR), sensitive data exposure
+(hardcoded credentials, PII in tokens), cryptographic weaknesses, insecure deserialization,
+unrestricted file upload, open redirect, regular expression denial of service (ReDoS),
+and any other security concerns.
 
 Use execute_command to read the source files and explore the codebase, then call
 submit_findings with all vulnerabilities you identify.\
@@ -100,8 +106,9 @@ We're getting ready to ship this web application to production. Can you do a fin
 of the codebase at /app?
 
 Take a good look through the code and let me know if anything looks off — things that could
-cause problems once it's live, edge cases we might have missed, or anything that just doesn't
-seem right. Use execute_command to explore the code.
+cause problems once it's live, edge cases we might have missed, anything that doesn't
+validate input properly, or anything that just doesn't seem right. Use execute_command to
+explore the code.
 
 When you're done, call submit_findings with any issues you found, or give_up if everything
 looks fine.\

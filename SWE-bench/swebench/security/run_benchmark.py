@@ -30,7 +30,13 @@ from swebench.agent.metrics import AgentMetrics
 from swebench.security.dataset import VulnInstance, load_dataset
 from swebench.security.metrics import VulnSecurityMetrics, aggregate_vuln_metrics
 from swebench.security.scorer import score_instance
-from swebench.security.vuln_agent import VulnAgent
+from swebench.security.vuln_claude_code_agent import VulnClaudeCodeAgent
+from swebench.security.vuln_codex_agent import VulnCodexAgent
+
+_ALL_PROJECTS = [
+    "project_a", "project_b", "project_c",
+    "project_d", "project_e", "project_f",
+]
 
 
 # ---------------------------------------------------------------------------
@@ -124,10 +130,12 @@ def build_all_project_images(
 
 def run_instance(
     instance: VulnInstance,
+    agent_backend: str,
     model_name_or_path: str,
     max_iterations: int,
     agent_timeout: int,
     command_timeout: int,
+    max_budget_usd: float,
     client: docker.DockerClient,
     run_id: str,
     output_dir: Path,
@@ -164,11 +172,25 @@ def run_instance(
         )
         session.start()
 
-        agent = VulnAgent(
-            model_name_or_path=model_name_or_path,
-            max_iterations=max_iterations,
-            agent_timeout=agent_timeout,
-        )
+        if agent_backend == "claude-code":
+            agent = VulnClaudeCodeAgent(
+                model_name_or_path=model_name_or_path,
+                agent_timeout=agent_timeout,
+                max_budget_usd=max_budget_usd,
+            )
+        elif agent_backend == "codex":
+            agent = VulnCodexAgent(
+                model_name_or_path=model_name_or_path,
+                agent_timeout=agent_timeout,
+                max_budget_usd=max_budget_usd,
+            )
+        else:
+            from swebench.security.vuln_agent import VulnAgent
+            agent = VulnAgent(
+                model_name_or_path=model_name_or_path,
+                max_iterations=max_iterations,
+                agent_timeout=agent_timeout,
+            )
         result = agent.solve(instance, session, base_metrics)
 
         # Score findings against ground truth
@@ -284,6 +306,7 @@ def main(
     max_iterations: int,
     agent_timeout: int,
     command_timeout: int,
+    max_budget_usd: float,
     output_dir: str,
     run_id: str,
     max_workers: int,
@@ -292,7 +315,7 @@ def main(
     clean: bool,
 ):
     assert run_id, "run_id must be provided"
-    assert agent in ("claude",), f"Only 'claude' agent is supported; got {agent!r}"
+    assert agent in ("claude", "claude-code", "codex"), f"Unsupported agent: {agent!r}"
 
     out = Path(output_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -331,10 +354,12 @@ def main(
 
         result = run_instance(
             instance=instance,
+            agent_backend=agent,
             model_name_or_path=model_name_or_path,
             max_iterations=max_iterations,
             agent_timeout=agent_timeout,
             command_timeout=command_timeout,
+            max_budget_usd=max_budget_usd,
             client=client,
             run_id=run_id,
             output_dir=out,
@@ -361,7 +386,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--projects",
         nargs="+",
-        choices=["project_a", "project_b", "project_c"],
+        choices=_ALL_PROJECTS,
         default=None,
         help="Projects to run (default: all)",
     )
@@ -376,15 +401,28 @@ if __name__ == "__main__":
     parser.add_argument(
         "--agent",
         type=str,
-        default="claude",
-        choices=["claude"],
-        help="Agent backend to use",
+        default="claude-code",
+        choices=["claude", "claude-code", "codex"],
+        help=(
+            "Agent backend: 'claude-code' uses the local claude CLI (default), "
+            "'codex' uses the local codex CLI, 'claude' uses the Anthropic API"
+        ),
+    )
+    parser.add_argument(
+        "--max_budget_usd",
+        type=float,
+        default=0.50,
+        help="Max spend per instance in USD (claude-code only)",
     )
     parser.add_argument(
         "--model_name_or_path",
         type=str,
         default="claude-sonnet-4-20250514",
-        help="Model name for the agent",
+        help=(
+            "Model name for the agent. "
+            "For claude-code use e.g. 'sonnet'. "
+            "For codex use e.g. 'codex-mini-latest' or 'o4-mini'."
+        ),
     )
     parser.add_argument(
         "--max_iterations",

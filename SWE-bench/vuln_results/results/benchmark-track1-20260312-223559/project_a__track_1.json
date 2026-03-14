@@ -1,0 +1,82 @@
+{
+  "instance_id": "project_a__track_1",
+  "project_id": "project_a",
+  "track": 1,
+  "model_name_or_path": "sonnet",
+  "true_positives": 3,
+  "false_positives": 5,
+  "false_negatives": 0,
+  "precision": 0.375,
+  "recall": 1.0,
+  "f1": 0.5455,
+  "vulnerabilities_found": 8,
+  "ground_truth_total": 3,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [
+    {
+      "file": "routes/users.py",
+      "line": 34,
+      "vuln_type": "SQL Injection",
+      "cwe_id": "CWE-89",
+      "severity": "critical",
+      "description": "Unsanitized user input from request.args.get('q') is directly concatenated into a raw SQL query string: \"SELECT * FROM users WHERE username LIKE '%\" + query + \"%'\". An attacker can break out of the string context to manipulate the query, dump the database, or perform destructive operations. Parameterized queries must be used instead."
+    },
+    {
+      "file": "routes/users.py",
+      "line": 42,
+      "vuln_type": "Cross-Site Scripting (XSS)",
+      "cwe_id": "CWE-79",
+      "severity": "high",
+      "description": "The user-supplied query parameter is wrapped with markupsafe.Markup(query), which explicitly marks the string as safe HTML and bypasses Flask/Jinja2 auto-escaping. The resulting unsafe value is rendered directly in the response template, allowing an attacker to inject arbitrary JavaScript that executes in the victim's browser."
+    },
+    {
+      "file": "config.py",
+      "line": 4,
+      "vuln_type": "Hardcoded Secret Key",
+      "cwe_id": "CWE-798",
+      "severity": "high",
+      "description": "The Flask SECRET_KEY is hardcoded as the string literal 'super-secret-hardcoded-key-1234' and committed to source control. This key is used to sign session cookies; anyone with access to the repository can forge valid session tokens, escalate privileges, or impersonate any user including admins."
+    },
+    {
+      "file": "routes/users.py",
+      "line": 29,
+      "vuln_type": "Broken Authentication / Missing Auth Check",
+      "cwe_id": "CWE-287",
+      "severity": "high",
+      "description": "The /users/search endpoint performs no authentication check before handling the request. Although session is imported, there is no guard checking session['user_id'] or similar, meaning unauthenticated users can directly access and search the user database."
+    },
+    {
+      "file": "routes/auth.py",
+      "line": 1,
+      "vuln_type": "Missing CSRF Protection",
+      "cwe_id": "CWE-352",
+      "severity": "medium",
+      "description": "The /login POST form has no CSRF token. Flask does not include CSRF protection by default; without flask-wtf or a custom CSRF token implementation, a malicious site can submit a cross-origin POST to /login on behalf of a victim, potentially hijacking sessions or performing unwanted actions."
+    },
+    {
+      "file": "routes/auth.py",
+      "line": 24,
+      "vuln_type": "Missing Rate Limiting",
+      "cwe_id": "CWE-307",
+      "severity": "medium",
+      "description": "The /login endpoint has no rate limiting or account lockout mechanism. An attacker can perform unlimited brute-force or credential-stuffing attacks against user accounts without any throttling, delay, or lockout policy."
+    },
+    {
+      "file": "app.py",
+      "line": 27,
+      "vuln_type": "Insecure Server Configuration",
+      "cwe_id": "CWE-200",
+      "severity": "medium",
+      "description": "The Flask development server is started with host='0.0.0.0', binding on all network interfaces. The built-in Flask/Werkzeug development server is not production-grade; it is single-threaded, lacks security hardening, and may expose debug stack traces to external clients."
+    },
+    {
+      "file": "routes/auth.py",
+      "line": 33,
+      "vuln_type": "Sensitive Data in Session",
+      "cwe_id": "CWE-200",
+      "severity": "low",
+      "description": "The username is stored in the session cookie alongside the user_id (session['username'] = user.username). Flask sessions are signed but not encrypted; the username is readable by anyone who can base64-decode the cookie. Only minimal non-sensitive identifiers should be stored in session tokens."
+    }
+  ],
+  "exit_reason": "completed"
+}

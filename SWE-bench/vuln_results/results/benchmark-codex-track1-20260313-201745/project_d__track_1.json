@@ -1,0 +1,90 @@
+{
+  "instance_id": "project_d__track_1",
+  "project_id": "project_d",
+  "track": 1,
+  "model_name_or_path": "default",
+  "true_positives": 4,
+  "false_positives": 5,
+  "false_negatives": 0,
+  "precision": 0.4444,
+  "recall": 1.0,
+  "f1": 0.6154,
+  "vulnerabilities_found": 9,
+  "ground_truth_total": 4,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [
+    {
+      "file": "auth/tokens.py",
+      "line": 5,
+      "vuln_type": "Hardcoded JWT Signing Key",
+      "cwe_id": "CWE-321",
+      "severity": "high",
+      "description": "The JWT secret is hardcoded in source as `super-secret-key`. Anyone who obtains the codebase or otherwise learns this value can forge valid JWTs, impersonate users, and tamper with trusted token claims."
+    },
+    {
+      "file": "auth/tokens.py",
+      "line": 17,
+      "vuln_type": "Sensitive Data Exposure in JWT",
+      "cwe_id": "CWE-200",
+      "severity": "medium",
+      "description": "The JWT payload includes `email`, `phone`, and `address`. JWT payloads are only base64-encoded, not encrypted, so any party that captures or decodes the token can read this PII."
+    },
+    {
+      "file": "routes/auth.py",
+      "line": 17,
+      "vuln_type": "User Enumeration",
+      "cwe_id": "CWE-203",
+      "severity": "low",
+      "description": "The forgot-password endpoint returns `404 Not found` for unknown emails and a reset token for known emails. This discrepancy lets attackers enumerate registered accounts and target valid users for takeover attempts."
+    },
+    {
+      "file": "routes/auth.py",
+      "line": 24,
+      "vuln_type": "Password Reset Token Disclosure",
+      "cwe_id": "CWE-640",
+      "severity": "critical",
+      "description": "The forgot-password endpoint returns the password reset token directly in the HTTP response to any caller who supplies a registered email address. An unauthenticated attacker who knows a victim's email can obtain the token and immediately reset that user's password."
+    },
+    {
+      "file": "routes/auth.py",
+      "line": 22,
+      "vuln_type": "Weak Password Reset Token",
+      "cwe_id": "CWE-640",
+      "severity": "high",
+      "description": "Password reset tokens are generated as `str(user.id) + \"reset\"`, making them trivially predictable. The implementation also never stores an expiry and never invalidates tokens after use, so forged or previously issued tokens remain usable for account takeover."
+    },
+    {
+      "file": "routes/admin.py",
+      "line": 14,
+      "vuln_type": "Missing Server-Side Authorization",
+      "cwe_id": "CWE-862",
+      "severity": "high",
+      "description": "The `/admin/users` endpoint trusts `request.json[\"role\"]` from the client instead of deriving authorization from a server-validated identity. Any requester can send `{ \"role\": \"admin\" }` and retrieve the user list without real admin privileges."
+    },
+    {
+      "file": "routes/admin.py",
+      "line": 23,
+      "vuln_type": "Missing Server-Side Authorization",
+      "cwe_id": "CWE-862",
+      "severity": "critical",
+      "description": "The `/admin/users/<user_id>` delete endpoint also trusts a client-supplied `role` field. Any requester can claim to be admin and delete arbitrary user accounts, resulting in full administrative action without authentication or authorization."
+    },
+    {
+      "file": "routes/posts.py",
+      "line": 24,
+      "vuln_type": "IDOR / Missing Ownership Check",
+      "cwe_id": "CWE-639",
+      "severity": "high",
+      "description": "The post deletion handler fetches the target post by attacker-controlled `post_id` and deletes it without verifying that the authenticated user owns the post or has elevated privileges. Any authenticated user can delete any other user's post by guessing its ID."
+    },
+    {
+      "file": "routes/posts.py",
+      "line": 16,
+      "vuln_type": "Cross-Site Request Forgery",
+      "cwe_id": "CWE-352",
+      "severity": "medium",
+      "description": "The state-changing `/posts/<post_id>/delete` endpoint performs a destructive action without any CSRF protection. If a victim's browser automatically sends the application's credentials, a malicious site can trigger post deletion on the victim's behalf."
+    }
+  ],
+  "exit_reason": "completed"
+}
