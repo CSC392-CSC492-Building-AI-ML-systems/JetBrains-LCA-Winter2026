@@ -75,7 +75,8 @@ class ClaudeCodeAgent(AgentBase):
         cmd = [
             self.claude_path,
             "--print",
-            "--output-format", "json",
+            "--output-format", "stream-json",
+            "--verbose",
             "--model", self.model_name_or_path,
             "--max-budget-usd", str(self.max_budget_usd),
             "--dangerously-skip-permissions",
@@ -108,15 +109,15 @@ class ClaudeCodeAgent(AgentBase):
             if proc.stderr:
                 logger.info(f"Claude Code stderr:\n{proc.stderr[:2000]}")
 
-            # Parse JSON output
+            # Parse stream-json output
             result_data = self._parse_output(proc.stdout, logger)
 
-            if result_data:
-                metrics.input_tokens = result_data.get("input_tokens", 0)
-                metrics.output_tokens = result_data.get("output_tokens", 0)
-                # Count tool uses as iterations
-                num_turns = result_data.get("num_turns", 0)
-                metrics.iterations = num_turns
+            metrics.input_tokens = result_data["input_tokens"]
+            metrics.output_tokens = result_data["output_tokens"]
+            metrics.iterations = result_data["num_turns"]
+            metrics.commands_executed = result_data["commands_executed"]
+            metrics.reasoning_steps = result_data["reasoning_steps"]
+            metrics.estimated_cost_usd = result_data["total_cost_usd"]
 
             if proc.returncode != 0:
                 logger.error(f"Claude Code exited with code {proc.returncode}")
@@ -189,26 +190,59 @@ Start by exploring the repository structure and understanding the relevant \
 code, then reproduce the bug, implement a fix, and verify it with tests. \
 Remember: all commands must be run via `docker exec {container_name} bash -c '...'`."""
 
-    def _parse_output(self, stdout: str, logger: logging.Logger) -> dict | None:
-        """Parse Claude Code's JSON output to extract token usage."""
-        if not stdout.strip():
-            return None
+    def _parse_output(self, stdout: str, logger: logging.Logger) -> dict:
+        """Parse Claude Code's stream-json NDJSON output.
 
-        try:
-            data = json.loads(stdout)
-            # Claude Code --output-format json returns:
-            # {"result": "...", "input_tokens": N, "output_tokens": N, "num_turns": N, ...}
-            return data
-        except json.JSONDecodeError:
-            # Might be multiple JSON objects or plain text
-            logger.warning(f"Could not parse Claude Code output as JSON (len={len(stdout)})")
-            # Try to find the last JSON object
-            for line in reversed(stdout.strip().split("\n")):
-                try:
-                    return json.loads(line)
-                except json.JSONDecodeError:
-                    continue
-            return None
+        Counts reasoning steps (thinking blocks) and commands executed (Bash
+        tool_use blocks) from assistant message events, then reads token usage,
+        cost, and turn count from the final result event.
+
+        Claude Code --output-format stream-json emits one JSON object per line:
+          {"type": "assistant", "message": {"content": [{"type": "thinking", ...}, ...]}}
+          {"type": "tool",      ...}
+          {"type": "result",    "num_turns": N, "total_cost_usd": X,
+                                "usage": {"input_tokens": N, "output_tokens": N, ...}}
+        """
+        result = {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_cost_usd": 0.0,
+            "num_turns": 0,
+            "commands_executed": 0,
+            "reasoning_steps": 0,
+        }
+
+        for line in stdout.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                event = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+
+            event_type = event.get("type", "")
+
+            if event_type == "assistant":
+                content = event.get("message", {}).get("content", [])
+                for block in content:
+                    block_type = block.get("type", "")
+                    if block_type == "thinking":
+                        result["reasoning_steps"] += 1
+                    elif block_type == "tool_use" and block.get("name") == "Bash":
+                        result["commands_executed"] += 1
+
+            elif event_type == "result":
+                usage = event.get("usage", {})
+                result["input_tokens"] = usage.get("input_tokens", 0)
+                result["output_tokens"] = usage.get("output_tokens", 0)
+                result["total_cost_usd"] = event.get("total_cost_usd") or 0.0
+                result["num_turns"] = event.get("num_turns", 0)
+
+        if not any([result["input_tokens"], result["output_tokens"], result["num_turns"]]):
+            logger.warning(f"Could not extract metrics from Claude Code output (len={len(stdout)})")
+
+        return result
 
 
 # Keys to keep from the parent environment for independent Claude Code sessions.
