@@ -115,11 +115,22 @@ class OpenAICodexAgent(AgentBase):
             # with open("./results.txt", "w") as file:
             #     file.write(proc.stdout)
 
+            input_cost_per_mill_tokens = 1.75
+            output_cost_per_mill_tokens = 14
+
             num_reasoning_steps, num_execution_steps, input_tokens, output_tokens = self._parse_output(proc.stdout)
             metrics.iterations = num_reasoning_steps
+            metrics.reasoning_steps = num_reasoning_steps
             metrics.commands_executed = num_execution_steps
             metrics.input_tokens = input_tokens
             metrics.output_tokens = output_tokens
+
+            # Compute cost overall using token costs. estimation done using info from https://developers.openai.com/api/docs/models/gpt-5.2-codex
+            input_tokens_in_mill = input_tokens / 1000000
+            output_tokens_in_mill = output_tokens / 1000000
+
+            total_cost = input_cost_per_mill_tokens * input_tokens_in_mill + output_cost_per_mill_tokens * output_tokens_in_mill
+            metrics.estimated_cost_usd = total_cost
         
         except subprocess.TimeoutExpired:
             print("Timedout")
