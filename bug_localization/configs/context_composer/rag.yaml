@@ -1,0 +1,4 @@
+_target_: src.baselines.context_composers.rag_context_composer.RAGContextComposer
+name: rag
+system_prompt_path: configs/prompts/rag_system_prompt.md
+user_prompt_path: configs/prompts/rag_user_prompt.md
