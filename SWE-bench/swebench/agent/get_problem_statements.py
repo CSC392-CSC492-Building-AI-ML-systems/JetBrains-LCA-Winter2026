@@ -1,0 +1,189 @@
+from swebench.harness.utils import load_swebench_dataset
+
+resolved = [
+    "astropy__astropy-6938",
+    "django__django-12856",
+    "django__django-12908",
+    "django__django-12983",
+    "django__django-13757",
+    "django__django-14997",
+    "django__django-15213",
+    "django__django-15347",
+    "django__django-15388",
+    "django__django-15498",
+    "matplotlib__matplotlib-25332",
+    "matplotlib__matplotlib-25433",
+    "matplotlib__matplotlib-25442",
+    "matplotlib__matplotlib-25498",
+    "matplotlib__matplotlib-26011",
+    "matplotlib__matplotlib-26020",
+    "psf__requests-1963",
+    "psf__requests-2148",
+    "psf__requests-2317",
+    "psf__requests-2674",
+    "pydata__xarray-4094",
+    "pytest-dev__pytest-11143",
+    "pytest-dev__pytest-5103",
+    "pytest-dev__pytest-5227",
+    "pytest-dev__pytest-7168",
+    "pytest-dev__pytest-7373",
+    "scikit-learn__scikit-learn-10297",
+    "scikit-learn__scikit-learn-12471",
+    "scikit-learn__scikit-learn-13142",
+    "scikit-learn__scikit-learn-13241",
+    "scikit-learn__scikit-learn-13439",
+    "scikit-learn__scikit-learn-13496",
+    "scikit-learn__scikit-learn-13584",
+    "scikit-learn__scikit-learn-13779",
+    "scikit-learn__scikit-learn-14087",
+    "scikit-learn__scikit-learn-14092",
+    "scikit-learn__scikit-learn-14894",
+    "scikit-learn__scikit-learn-15512",
+    "scikit-learn__scikit-learn-15535",
+    "sphinx-doc__sphinx-10325",
+    "sphinx-doc__sphinx-7975",
+    "sympy__sympy-12419",
+    "sympy__sympy-12481",
+    "sympy__sympy-13031",
+    "sympy__sympy-13471",
+    "sympy__sympy-13480",
+    "sympy__sympy-13647",
+    "sympy__sympy-13773",
+    "sympy__sympy-13971",
+    "sympy__sympy-14396",
+    "sympy__sympy-14774",
+    "sympy__sympy-15011",
+    "sympy__sympy-15345",
+    "sympy__sympy-15346",
+    "sympy__sympy-15609",
+    "sympy__sympy-15678",
+    "sympy__sympy-16792",
+    "sympy__sympy-16988",
+    "sympy__sympy-17022",
+    "sympy__sympy-17139",
+    "sympy__sympy-17655",
+    "sympy__sympy-18057",
+    "sympy__sympy-18189",
+    "sympy__sympy-18532",
+    "sympy__sympy-18621",
+    "sympy__sympy-19007",
+    "sympy__sympy-19487",
+    "sympy__sympy-20049",
+    "sympy__sympy-20154",
+    "sympy__sympy-20212",
+    "sympy__sympy-20442",
+    "sympy__sympy-20590",
+    "sympy__sympy-21055",
+    "sympy__sympy-21379",
+    "sympy__sympy-21614",
+    "sympy__sympy-21847",
+    "sympy__sympy-22005",
+    "sympy__sympy-22714",
+    "sympy__sympy-23117",
+    "sympy__sympy-23262",
+    "sympy__sympy-24066",
+    "sympy__sympy-24152",
+    "sympy__sympy-24213",
+]
+
+unresolved = [
+    "astropy__astropy-7746",
+    "django__django-13230",
+    "django__django-13265",
+    "django__django-13321",
+    "django__django-13448",
+    "django__django-13660",
+    "django__django-13768",
+    "django__django-15061",
+    "django__django-15202",
+    "django__django-15320",
+    "django__django-15400",
+    "matplotlib__matplotlib-25311",
+    "psf__requests-3362",
+    "psf__requests-863",
+    "pylint-dev__pylint-6506",
+    "pylint-dev__pylint-7080",
+    "pytest-dev__pytest-11148",
+    "pytest-dev__pytest-5221",
+    "pytest-dev__pytest-5413",
+    "pytest-dev__pytest-5495",
+    "pytest-dev__pytest-7220",
+    "pytest-dev__pytest-8365",
+    "pytest-dev__pytest-8906",
+    "pytest-dev__pytest-9359",
+    "scikit-learn__scikit-learn-10508",
+    "scikit-learn__scikit-learn-10949",
+    "scikit-learn__scikit-learn-11040",
+    "scikit-learn__scikit-learn-13497",
+    "scikit-learn__scikit-learn-14983",
+    "scikit-learn__scikit-learn-25747",
+    "sphinx-doc__sphinx-10451",
+    "sphinx-doc__sphinx-7738",
+    "sphinx-doc__sphinx-8273",
+    "sphinx-doc__sphinx-8282",
+    "sphinx-doc__sphinx-8506",
+    "sphinx-doc__sphinx-8713",
+    "sympy__sympy-11400",
+    "sympy__sympy-11870",
+    "sympy__sympy-11897",
+    "sympy__sympy-12236",
+    "sympy__sympy-12454",
+    "sympy__sympy-13043",
+    "sympy__sympy-13177",
+    "sympy__sympy-13437",
+    "sympy__sympy-13895",
+    "sympy__sympy-13915",
+    "sympy__sympy-14024",
+    "sympy__sympy-14317",
+    "sympy__sympy-14817",
+    "sympy__sympy-15308",
+    "sympy__sympy-16106",
+    "sympy__sympy-16281",
+    "sympy__sympy-16503",
+    "sympy__sympy-17630",
+    "sympy__sympy-18087",
+    "sympy__sympy-18199",
+    "sympy__sympy-18698",
+    "sympy__sympy-18835",
+    "sympy__sympy-19254",
+    "sympy__sympy-20322",
+    "sympy__sympy-20639",
+    "sympy__sympy-21171",
+    "sympy__sympy-21612",
+    "sympy__sympy-21627",
+    "sympy__sympy-22840",
+    "sympy__sympy-23191",
+    "sympy__sympy-24102",
+    "sympy__sympy-24909",
+]
+
+if __name__ == "__main__":
+    unresolved_instances = load_swebench_dataset(
+        "SWE-bench/SWE-bench_Lite", "test", unresolved
+    )
+
+    resolved_instances = load_swebench_dataset(
+        "SWE-bench/SWE-bench_Lite", "test", resolved
+    )
+
+    with open("unresolved_statements.txt", "w") as file:
+        for inst in unresolved_instances:
+            file.write(inst["instance_id"])
+            file.write("\n")
+            file.write(inst["problem_statement"])
+            file.write("\n")
+            file.write(inst["patch"])
+            file.write("\n")
+            file.write("==============================================")
+            file.write("\n")
+
+    with open("resolved_statements.txt", "w") as file:
+        for inst in resolved_instances:
+            file.write(inst["instance_id"])
+            file.write("\n")
+            file.write(inst["problem_statement"])
+            file.write("\n")
+            file.write(inst["patch"])
+            file.write("\n")
+            file.write("==============================================")
+            file.write("\n")
