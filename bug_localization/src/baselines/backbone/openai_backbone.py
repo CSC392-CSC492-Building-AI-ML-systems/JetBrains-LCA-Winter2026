@@ -13,7 +13,6 @@ from src.baselines.backbone.utils import extract_json_from_output
 from src.baselines.context_composers.base_context_composer import BaseContextComposer
 from src.baselines.utils.type_utils import ChatMessage
 
-
 class OpenAIBackbone(BaseBackbone):
 
     def __init__(
@@ -41,13 +40,25 @@ class OpenAIBackbone(BaseBackbone):
     def localize_bugs(self, dp: dict) -> Dict[str, Any]:
         messages = self._context_composer.compose_chat(dp, self._model_name)
         completion = self._get_chat_completion(messages)
-        # --- ADDED: Extract tokens from the completion object ---
+        
         total_tokens = completion.usage.total_tokens
         raw_completion_content = completion.choices[0].message.content
 
         json_completion_content = None
+        num_predicted_files = 0
+        
         try:
             json_completion_content = extract_json_from_output(raw_completion_content)
+            
+            # --- ADDED: Count the number of files the LLM guessed ---
+            if isinstance(json_completion_content, list):
+                num_predicted_files = len(json_completion_content)
+            elif isinstance(json_completion_content, dict):
+                # Sometimes models output {"files": ["file1.py", "file2.py"]}
+                for value in json_completion_content.values():
+                    if isinstance(value, list):
+                        num_predicted_files += len(value)
+                        
         except Exception:
             logger.info(f"Failed to parse json from output: {raw_completion_content}")
 
@@ -55,5 +66,7 @@ class OpenAIBackbone(BaseBackbone):
             "messages": json.dumps(messages),
             "raw_completion": raw_completion_content,
             "json_completion": json.dumps(json_completion_content) if json_completion_content else None,
-            "total_tokens": total_tokens,  # --- ADDED: Pass this back to run.py ---
+            "total_tokens": total_tokens,
+            "valid_json": json_completion_content is not None,  # --- ADDED
+            "num_predicted_files": num_predicted_files          # --- ADDED
         }

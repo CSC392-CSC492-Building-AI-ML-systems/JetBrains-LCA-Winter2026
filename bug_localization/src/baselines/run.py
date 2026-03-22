@@ -12,41 +12,50 @@ from src import PROJECT_DIR
 from src.baselines.backbone.base_backbone import BaseBackbone
 from src.baselines.data_sources.base_data_source import BaseDataSource
 
-# --- ADDED: Metrics Collector ---
-class AgenticMetricsCollector:
+# --- UPDATED: Localization Metrics Collector ---
+class LocalizationMetricsCollector:
     def __init__(self):
         self.total_time_seconds = 0
         self.total_token_usage = 0
         self.total_cost_usd = 0
-        self.total_lines_edited = 0
-        self.total_bugs_fixed = 0
-        self.total_new_bugs_introduced = 0
         self.instance_count = 0
+        self.valid_format_count = 0
+        self.total_files_predicted = 0
+        self.empty_predictions = 0
 
-    def add_instance_metrics(self, duration, tokens=0, cost=0, edits=0, fixed=0, bugs=0):
+    def add_instance_metrics(self, duration, tokens, cost, has_valid_json, num_files_predicted):
         self.total_time_seconds += duration
         self.total_token_usage += tokens
         self.total_cost_usd += cost
-        self.total_lines_edited += edits
-        self.total_bugs_fixed += fixed
-        self.total_new_bugs_introduced += bugs
         self.instance_count += 1
+        
+        if has_valid_json:
+            self.valid_format_count += 1
+            self.total_files_predicted += num_files_predicted
+            if num_files_predicted == 0:
+                self.empty_predictions += 1
 
-    def log_agentic_summary(self, logger):
+    def log_summary(self, logger):
         if self.instance_count == 0:
             return
-        logger.info("=" * 40)
-        logger.info("AGENTIC PARADIGM COMPARISON SUMMARY")
-        logger.info("-" * 40)
-        logger.info(f"Instances Evaluated:     {self.instance_count}")
-        logger.info(f"Total Time (H:M:S):      {time.strftime('%H:%M:%S', time.gmtime(self.total_time_seconds))}")
-        logger.info(f"Avg Time/Instance:       {self.total_time_seconds / self.instance_count:.2f}s")
-        logger.info(f"Diagnostic Token Usage:  {self.total_token_usage}")
-        logger.info(f"Diagnostic Cost (USD):   ${self.total_cost_usd:.4f}")
-        logger.info(f"Lines Edited (Passive):  {self.total_lines_edited}")
-        logger.info(f"Bugs Fixed (Passive):    {self.total_bugs_fixed}")
-        logger.info(f"Regressions (Passive):   {self.total_new_bugs_introduced}")
-        logger.info("=" * 40)
+        logger.info("=" * 45)
+        logger.info("BUG LOCALIZATION (PASSIVE) METRICS SUMMARY")
+        logger.info("-" * 45)
+        logger.info(f"Instances Evaluated:       {self.instance_count}")
+        logger.info(f"Total Time (H:M:S):        {time.strftime('%H:%M:%S', time.gmtime(self.total_time_seconds))}")
+        logger.info(f"Avg Time/Instance:         {self.total_time_seconds / self.instance_count:.2f}s")
+        logger.info(f"Total Token Usage:         {self.total_token_usage}")
+        logger.info(f"Estimated Cost (USD):      ${self.total_cost_usd:.4f}")
+        logger.info("-" * 45)
+        
+        # Format Compliance Metrics
+        compliance_rate = (self.valid_format_count / self.instance_count) * 100
+        logger.info(f"Valid JSON Outputs:        {self.valid_format_count} ({compliance_rate:.1f}%)")
+        
+        avg_files = self.total_files_predicted / self.valid_format_count if self.valid_format_count > 0 else 0
+        logger.info(f"Avg Files Guessed:         {avg_files:.2f} per valid run")
+        logger.info(f"Empty Predictions:         {self.empty_predictions}")
+        logger.info("=" * 45)
 # --------------------------------
 
 @hydra.main(version_base="1.1", config_path=os.path.join(PROJECT_DIR / "configs"), config_name="run.yaml")
@@ -54,7 +63,6 @@ def main(cfg: DictConfig) -> None:
     OmegaConf.set_struct(cfg, False)
     os.environ['HYDRA_FULL_ERROR'] = '1'
 
-    # Setup logger for the summary output
     log = logging.getLogger(__name__)
 
     backbone: BaseBackbone = hydra.utils.instantiate(cfg.backbone)
@@ -64,12 +72,9 @@ def main(cfg: DictConfig) -> None:
     os.makedirs(results_dir_path, exist_ok=True)
     results_path = results_dir_path / 'results.jsonl'
 
-    # --- ADDED: Initialize Collector ---
-    metrics = AgenticMetricsCollector()
+    metrics = LocalizationMetricsCollector()
 
-    # Added enumerate to track the number of instances
     for i, dp in enumerate(data_src):
-        # Exit the loop after processing 100 instances
         if i >= 100:
             log.info("Reached 100 instances. Stopping run.")
             break
@@ -79,31 +84,25 @@ def main(cfg: DictConfig) -> None:
         end_time = time.time()
         
         duration_seconds = end_time - start_time
-        
         results_dict['time_s'] = duration_seconds * 1000000
         results_dict['text_id'] = dp['text_id']
 
-        # --- UPDATED: Inside your metrics loop ---
+        # --- UPDATED: Pass localization data to collector ---
         tokens = results_dict.get('total_tokens', 0)
-        
-        # Calculate cost (Approx $0.50 per 1M tokens for GPT-3.5 Turbo)
-        instance_cost = (tokens / 1_000_000) * 0.50
+        instance_cost = (tokens / 1_000_000) * 0.50 # GPT-3.5 estimated pricing
 
         metrics.add_instance_metrics(
             duration=duration_seconds,
             tokens=tokens, 
-            cost=instance_cost,  # Pass the calculated cost
-            edits=0, 
-            fixed=0, 
-            bugs=0   
+            cost=instance_cost,
+            has_valid_json=results_dict.get('valid_json', False),
+            num_files_predicted=results_dict.get('num_predicted_files', 0)
         )
 
         with open(results_path, 'a', newline='') as f:
             f.write(json.dumps(results_dict) + "\n")
 
-    # --- ADDED: Print Summary at the end ---
-    metrics.log_agentic_summary(log)
-
+    metrics.log_summary(log)
 
 if __name__ == '__main__':
     main()
