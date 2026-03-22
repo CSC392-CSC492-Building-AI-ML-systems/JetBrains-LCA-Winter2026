@@ -1,8 +1,8 @@
 _target_: src.baselines.backbone.anthropic_backbone.AnthropicBackbone
-name: claude-3.5-sonnet
+name: claude-haiku-4-5
 
-# Anthropic API requires this exact string format (with dashes)
-model_name: claude-3-5-sonnet-20241022
+# --- UPDATED: Use the correct 2026 API string ---
+model_name: claude-haiku-4-5
 
 context_composer: ${context_composer}
 parameters:

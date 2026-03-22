@@ -58,10 +58,9 @@ def main(cfg: DictConfig) -> None:
     eval_results_path = eval_dir_path / 'results.jsonl'
 
     # Load the predictions you just generated
-    # run_results_path = os.path.join(hydra.utils.to_absolute_path(cfg.data_path), 'run', cfg.run_id, 'results.jsonl')
-    run_results_path = "/home/wu/CSC398/JetBrains-LCA-Winter2026/bug_localization/data/run/openai-gpt-3.5-turbo-1106_issue_only/data/run/openai-gpt-3.5-turbo-1106_issue_only/results.jsonl"
+    run_results_path = os.path.join(hydra.utils.to_absolute_path(cfg.data_path), 'run', cfg.run_id, 'results.jsonl')
+    # run_results_path = "/home/wu/CSC398/JetBrains-LCA-Winter2026/bug_localization/data/run/openai-gpt-3.5-turbo-1106_issue_only/data/run/openai-gpt-3.5-turbo-1106_issue_only/results.jsonl"
     run_by_text_id = {}
-    
     try:
         with open(run_results_path, 'r') as f:
             for line in f.readlines():

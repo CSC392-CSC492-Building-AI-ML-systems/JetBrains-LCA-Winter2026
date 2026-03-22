@@ -47,7 +47,7 @@ class AnthropicBackbone(BaseBackbone):
 
     @retry(wait=wait_random_exponential(multiplier=1, max=40), stop=stop_after_attempt(3))
     def localize_bugs(self, dp: dict) -> Dict[str, Any]:
-        messages = self._context_composer.compose_chat(dp, self._model_name)
+        messages = self._context_composer.compose_chat(dp, "gpt-3.5-turbo-1106")
         
         # 3. Extract system prompt from messages if it exists
         system_prompt = None

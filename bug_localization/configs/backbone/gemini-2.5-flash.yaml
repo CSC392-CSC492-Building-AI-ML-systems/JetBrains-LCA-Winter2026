@@ -1,9 +1,9 @@
 # configs/backbone/gemini-1.5-flash.yaml
 _target_: src.baselines.backbone.gemini_backbone.GeminiBackbone
-name: gemini-flash
+name: gemini-2.5-flash
 
-# --- FIXED: Using the stable alias from your list ---
-model_name: models/gemini-2.0-flash
+# --- UPDATED: 2.0 is deprecated, 2.5 is the new standard ---
+model_name: models/gemini-2.5-flash
 
 context_composer: ${context_composer}
 parameters:
