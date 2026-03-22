@@ -41,6 +41,8 @@ class OpenAIBackbone(BaseBackbone):
     def localize_bugs(self, dp: dict) -> Dict[str, Any]:
         messages = self._context_composer.compose_chat(dp, self._model_name)
         completion = self._get_chat_completion(messages)
+        # --- ADDED: Extract tokens from the completion object ---
+        total_tokens = completion.usage.total_tokens
         raw_completion_content = completion.choices[0].message.content
 
         json_completion_content = None
@@ -53,4 +55,5 @@ class OpenAIBackbone(BaseBackbone):
             "messages": json.dumps(messages),
             "raw_completion": raw_completion_content,
             "json_completion": json.dumps(json_completion_content) if json_completion_content else None,
+            "total_tokens": total_tokens,  # --- ADDED: Pass this back to run.py ---
         }
