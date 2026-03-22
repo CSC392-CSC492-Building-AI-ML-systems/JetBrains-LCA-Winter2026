@@ -1,4 +1,4 @@
-_target_: src.baselines.backbone.grazie_backbone.GrazieBackbone
+_target_: src.baselines.backbone.anthropic_backbone.AnthropicBackbone
 name: anthropic-claude-3-haiku
 model_name: anthropic-claude-3-haiku
 parameters:

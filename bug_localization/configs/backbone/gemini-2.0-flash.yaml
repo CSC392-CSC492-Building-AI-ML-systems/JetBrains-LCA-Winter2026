@@ -1,0 +1,10 @@
+# configs/backbone/gemini-1.5-flash.yaml
+_target_: src.baselines.backbone.gemini_backbone.GeminiBackbone
+name: gemini-flash
+
+# --- FIXED: Using the stable alias from your list ---
+model_name: models/gemini-2.0-flash
+
+context_composer: ${context_composer}
+parameters:
+  temperature: 0.0
