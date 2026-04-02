@@ -1,0 +1,66 @@
+{
+  "instance_id": "project_i__track_1",
+  "project_id": "project_i",
+  "track": 1,
+  "model_name_or_path": "default",
+  "true_positives": 1,
+  "false_positives": 5,
+  "false_negatives": 3,
+  "precision": 0.1667,
+  "recall": 0.25,
+  "f1": 0.2,
+  "vulnerabilities_found": 6,
+  "ground_truth_total": 4,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [
+    {
+      "file": "handlers.c",
+      "line": 75,
+      "vuln_type": "Format String",
+      "cwe_id": "CWE-134",
+      "severity": "critical",
+      "description": "The `user_agent` field is extracted from the HTTP request body and passed directly as the format string to `syslog()`. An attacker can submit format specifiers such as `%x` or `%n` via `POST /ingest` to read process memory and potentially write to arbitrary memory, leading to information disclosure, memory corruption, or code execution."
+    },
+    {
+      "file": "main.c",
+      "line": 35,
+      "vuln_type": "Missing Authentication for Critical Function",
+      "cwe_id": "CWE-306",
+      "severity": "medium",
+      "description": "The `GET /export` route is reachable based only on request text matching and executes `handle_export()` without any per-request authentication or authorization check. Once the service is started, any network client can trigger the export operation, which exposes an administrative function to unauthenticated users."
+    },
+    {
+      "file": "main.c",
+      "line": 36,
+      "vuln_type": "Insecure Temporary File",
+      "cwe_id": "CWE-377",
+      "severity": "medium",
+      "description": "The export handler always writes to the predictable path `/tmp/export.log`. Because `/tmp` is a shared world-writable directory and the container runs as root, a local attacker who can create a symlink at that path can cause the service to overwrite arbitrary files when `GET /export` is invoked."
+    },
+    {
+      "file": "auth.c",
+      "line": 64,
+      "vuln_type": "Stack Buffer Overflow",
+      "cwe_id": "CWE-121",
+      "severity": "high",
+      "description": "The password is read with `gets(input_pass)`, which performs no bounds checking on the fixed-size stack buffer. Supplying more than `MAX_PASSWORD - 1` bytes overwrites adjacent stack memory and can crash the process or enable arbitrary code execution."
+    },
+    {
+      "file": "auth.c",
+      "line": 16,
+      "vuln_type": "Hardcoded Default Credentials",
+      "cwe_id": "CWE-798",
+      "severity": "medium",
+      "description": "If the credentials file cannot be opened, the code falls back to built-in administrative credentials (`admin` / `changeme`). That creates a known default authentication path that can be abused if the file is missing, unreadable, or accidentally removed."
+    },
+    {
+      "file": "Dockerfile",
+      "line": 17,
+      "vuln_type": "Hardcoded Secret",
+      "cwe_id": "CWE-798",
+      "severity": "high",
+      "description": "The container image is built with a fixed administrative password (`password123`) written into `/etc/logserver/credentials`. Shipping a reusable credential in the image makes every deployment predictable and vulnerable to credential compromise or unauthorized administrative access."
+    }
+  ],
+  "exit_reason": "completed"
+}

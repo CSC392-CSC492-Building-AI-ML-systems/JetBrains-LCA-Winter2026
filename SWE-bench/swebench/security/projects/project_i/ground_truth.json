@@ -1,0 +1,34 @@
+[
+  {
+    "cwe_id": "CWE-134",
+    "file": "handlers.c",
+    "line_start": 75,
+    "line_end": 75,
+    "language": "c",
+    "description": "Format string vulnerability: user-controlled user_agent is passed as the format argument to syslog(), allowing an attacker to read or write arbitrary memory via format specifiers like %n or %x."
+  },
+  {
+    "cwe_id": "CWE-190",
+    "file": "handlers.c",
+    "line_start": 54,
+    "line_end": 54,
+    "language": "c",
+    "description": "Integer overflow in malloc size calculation: count * sizeof(log_entry_t) can wrap around on large count values, causing malloc to allocate a tiny buffer while the loop writes past the end of it."
+  },
+  {
+    "cwe_id": "CWE-78",
+    "file": "utils.c",
+    "line_start": 72,
+    "line_end": 72,
+    "language": "c",
+    "description": "OS command injection via system(): date_filter is validated with a regex but appears in the shell command string, allowing shell metacharacter injection via bypass techniques to execute arbitrary commands."
+  },
+  {
+    "cwe_id": "CWE-676",
+    "file": "auth.c",
+    "line_start": 64,
+    "line_end": 64,
+    "language": "c",
+    "description": "Use of dangerous gets() function with no bounds checking. Input longer than MAX_PASSWORD-1 bytes overflows the stack buffer, enabling a classic stack-based buffer overflow attack."
+  }
+]

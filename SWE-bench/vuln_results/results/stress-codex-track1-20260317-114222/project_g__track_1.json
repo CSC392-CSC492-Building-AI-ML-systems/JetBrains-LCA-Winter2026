@@ -1,0 +1,74 @@
+{
+  "instance_id": "project_g__track_1",
+  "project_id": "project_g",
+  "track": 1,
+  "model_name_or_path": "default",
+  "true_positives": 4,
+  "false_positives": 3,
+  "false_negatives": 0,
+  "precision": 0.5714,
+  "recall": 1.0,
+  "f1": 0.7273,
+  "vulnerabilities_found": 7,
+  "ground_truth_total": 4,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [
+    {
+      "file": "app.py",
+      "line": 11,
+      "vuln_type": "Hardcoded Secret Key",
+      "cwe_id": "CWE-321",
+      "severity": "high",
+      "description": "The Flask application uses a hardcoded `secret_key` (`dev-secret-only`). Anyone who knows this value can forge signed session cookies and potentially impersonate arbitrary users, resulting in authentication bypass and session tampering."
+    },
+    {
+      "file": "init_db.py",
+      "line": 24,
+      "vuln_type": "Default Credentials",
+      "cwe_id": "CWE-798",
+      "severity": "high",
+      "description": "The database initialization seeds accounts with the hardcoded password `password123`, including the `admin` user. If this initialization runs in any deployed environment, an attacker can log in with known credentials and gain unauthorized access, including administrative access."
+    },
+    {
+      "file": "init_db.py",
+      "line": 27,
+      "vuln_type": "Hardcoded API Token",
+      "cwe_id": "CWE-798",
+      "severity": "high",
+      "description": "Static API tokens (`tok_admin_abc123` and `tok_alice_xyz789`) are inserted directly into the database. Hardcoded bearer-style secrets are predictable and reusable by anyone with code or image access, enabling unauthorized access wherever these tokens are accepted."
+    },
+    {
+      "file": "routes/search.py",
+      "line": 26,
+      "vuln_type": "SQL Injection",
+      "cwe_id": "CWE-89",
+      "severity": "critical",
+      "description": "User-controlled `category` and `keyword` parameters are interpolated into SQL fragments with f-strings and then passed into `utils/db.py:execute_search`, which concatenates them into a query. An attacker can inject arbitrary SQL through `/search/posts`, potentially reading or modifying database contents."
+    },
+    {
+      "file": "routes/admin.py",
+      "line": 37,
+      "vuln_type": "Stored XSS",
+      "cwe_id": "CWE-79",
+      "severity": "high",
+      "description": "Attacker-controlled profile bios are wrapped with `Markup()` and treated as trusted HTML before being returned by the admin user listing. Because the bio content is stored via `/profile/update` with only a weak blacklist-based filter, an attacker can persist JavaScript that executes when an admin views the data."
+    },
+    {
+      "file": "services/notifier.py",
+      "line": 38,
+      "vuln_type": "Server-Side Request Forgery",
+      "cwe_id": "CWE-918",
+      "severity": "high",
+      "description": "The webhook sender performs `requests.post()` to a user-supplied URL with only a minimal scheme blacklist. This allows requests to internal or cloud metadata endpoints such as `http://localhost` or `http://169.254.169.254`, exposing internal services and enabling SSRF."
+    },
+    {
+      "file": "utils/auth.py",
+      "line": 39,
+      "vuln_type": "Timing Attack",
+      "cwe_id": "CWE-208",
+      "severity": "medium",
+      "description": "API tokens are compared using normal string equality instead of a constant-time comparison. Response-time differences can leak how much of a supplied token matches a real token, enabling token enumeration or incremental guessing attacks."
+    }
+  ],
+  "exit_reason": "completed"
+}

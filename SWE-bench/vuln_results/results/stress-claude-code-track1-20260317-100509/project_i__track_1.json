@@ -1,0 +1,146 @@
+{
+  "instance_id": "project_i__track_1",
+  "project_id": "project_i",
+  "track": 1,
+  "model_name_or_path": "claude-sonnet-4-6",
+  "true_positives": 3,
+  "false_positives": 13,
+  "false_negatives": 1,
+  "precision": 0.1875,
+  "recall": 0.75,
+  "f1": 0.3,
+  "vulnerabilities_found": 16,
+  "ground_truth_total": 4,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [
+    {
+      "file": "handlers.c",
+      "line": 75,
+      "vuln_type": "Format String Injection",
+      "cwe_id": "CWE-134",
+      "severity": "critical",
+      "description": "User-controlled user_agent field from the HTTP request body is passed directly as the format string argument to syslog(). An attacker sending a User-Agent containing format specifiers such as %n, %x, or %s can read stack memory or write to arbitrary memory addresses, enabling code execution or information disclosure."
+    },
+    {
+      "file": "handlers.c",
+      "line": 54,
+      "vuln_type": "Integer Overflow / Heap Buffer Overflow",
+      "cwe_id": "CWE-190",
+      "severity": "critical",
+      "description": "The malloc size calculation 'count * sizeof(log_entry_t)' can wrap around to a small value when count is near SIZE_MAX. Even though count is bounds-checked against MAX_ENTRIES (1024), the guard uses a signed int comparison against MAX_ENTRIES while malloc takes size_t, leaving wrap-around possible on certain platforms. If exploited, malloc allocates a tiny buffer while the subsequent loop writes log entries well beyond the allocation, causing heap corruption."
+    },
+    {
+      "file": "utils.c",
+      "line": 72,
+      "vuln_type": "OS Command Injection",
+      "cwe_id": "CWE-78",
+      "severity": "critical",
+      "description": "run_log_command() builds a shell command string with snprintf() and executes it via system(). The date_filter and log_type values are embedded inside single-quoted grep arguments; a single-quote embedded in date_filter would break out of the quoting and allow arbitrary shell command execution. system() spawns /bin/sh -c, so any shell metacharacter reaching the string results in OS command injection."
+    },
+    {
+      "file": "auth.c",
+      "line": 64,
+      "vuln_type": "Stack Buffer Overflow via gets()",
+      "cwe_id": "CWE-121",
+      "severity": "critical",
+      "description": "gets() is used to read the password from stdin into a fixed-size stack buffer (input_pass[MAX_PASSWORD], 64 bytes). gets() performs no bounds checking; any input longer than 63 bytes overflows the buffer, overwriting adjacent stack variables and the return address. This enables arbitrary code execution or authentication bypass."
+    },
+    {
+      "file": "auth.c",
+      "line": 20,
+      "vuln_type": "Hardcoded Default Credentials",
+      "cwe_id": "CWE-798",
+      "severity": "high",
+      "description": "If /etc/logserver/credentials is missing, load_credentials() silently falls back to hardcoded credentials admin/changeme. An attacker who prevents the credentials file from being accessible can authenticate with these known default credentials."
+    },
+    {
+      "file": "Dockerfile",
+      "line": 12,
+      "vuln_type": "Hardcoded Credentials in Dockerfile",
+      "cwe_id": "CWE-259",
+      "severity": "high",
+      "description": "The Dockerfile writes the plaintext password 'password123' directly into /etc/logserver/credentials at image build time. The credential is baked into the image layer and visible to anyone with access to the image or its build history."
+    },
+    {
+      "file": "auth.c",
+      "line": 56,
+      "vuln_type": "Cleartext Password Comparison / No Password Hashing",
+      "cwe_id": "CWE-256",
+      "severity": "high",
+      "description": "Passwords are stored and compared in cleartext using strcmp(). No hashing algorithm (bcrypt, argon2, etc.) is used. A credential file compromise immediately yields usable plaintext passwords. strcmp() is also not constant-time, enabling timing side-channel attacks."
+    },
+    {
+      "file": "main.c",
+      "line": 26,
+      "vuln_type": "HTTP Request Smuggling / Insufficient HTTP Parsing",
+      "cwe_id": "CWE-444",
+      "severity": "high",
+      "description": "HTTP parsing only searches for the first occurrence of the double-CRLF header terminator and route strings using strstr(). There is no validation of Content-Length, no chunked transfer-encoding support, and no enforcement that the route check appears only in the request line. Attackers can craft requests with embedded route strings in header values to trigger unintended handler dispatch."
+    },
+    {
+      "file": "main.c",
+      "line": 14,
+      "vuln_type": "Missing Authentication on HTTP Endpoints",
+      "cwe_id": "CWE-306",
+      "severity": "high",
+      "description": "Authentication is performed once at server startup via stdin, not per-request. Any client that can reach port 8080 over the network can invoke POST /ingest and GET /export without supplying any credentials. Network-level access equals full access."
+    },
+    {
+      "file": "main.c",
+      "line": 33,
+      "vuln_type": "Path Traversal via Unsafe Export Path",
+      "cwe_id": "CWE-22",
+      "severity": "medium",
+      "description": "handle_export() accepts an arbitrary path string and passes it directly to fopen(). While currently called with the hardcoded path '/tmp/export.log', the function signature allows arbitrary paths. If ever called with user-supplied input, path traversal to arbitrary filesystem locations becomes trivially exploitable."
+    },
+    {
+      "file": "main.c",
+      "line": 20,
+      "vuln_type": "No Rate Limiting / Denial of Service",
+      "cwe_id": "CWE-400",
+      "severity": "medium",
+      "description": "The server handles one connection at a time in a tight accept loop with no rate limiting, concurrency controls, or resource caps. A single attacker sending large or slow requests causes a denial of service, blocking all other clients indefinitely."
+    },
+    {
+      "file": "handlers.c",
+      "line": 44,
+      "vuln_type": "Unsafe JSON Parsing / Improper Input Validation",
+      "cwe_id": "CWE-20",
+      "severity": "medium",
+      "description": "json_get_str() and json_get_int() use naive strstr-based extraction without proper JSON boundary validation. The parser does not advance the cursor correctly per entry, meaning all entries extract values from the same JSON region. A specially crafted JSON body can cause the parser to read out-of-bounds or misattribute fields."
+    },
+    {
+      "file": "utils.c",
+      "line": 84,
+      "vuln_type": "OS Command Injection via Unsanitized Archive Name",
+      "cwe_id": "CWE-78",
+      "severity": "medium",
+      "description": "compress_logs() builds a shell command with the archive_name parameter and passes it to system(). The function is externally callable (exported in server.h). If any caller passes user-controlled input, shell metacharacters in archive_name enable OS command injection."
+    },
+    {
+      "file": "auth.c",
+      "line": 10,
+      "vuln_type": "Plaintext Credential Storage",
+      "cwe_id": "CWE-312",
+      "severity": "medium",
+      "description": "Credentials are stored in /etc/logserver/credentials as plaintext. Any process or user with read access to that file obtains the admin password immediately. Credentials at rest should be stored as salted hashes using a memory-hard algorithm."
+    },
+    {
+      "file": "handlers.c",
+      "line": 69,
+      "vuln_type": "Sensitive Data Written to Logs",
+      "cwe_id": "CWE-532",
+      "severity": "low",
+      "description": "The full user_agent string from each ingested log entry is written verbatim to syslog without sanitization. User-Agent values may contain sensitive session tokens, internal paths, or PII that should not appear in system logs."
+    },
+    {
+      "file": "main.c",
+      "line": 52,
+      "vuln_type": "Information Disclosure via Server Banner",
+      "cwe_id": "CWE-200",
+      "severity": "low",
+      "description": "The server prints the authenticated username to stdout on startup ('Authenticated as: %s'). In containerised deployments where stdout is captured in logs accessible to multiple parties, this leaks the admin username."
+    }
+  ],
+  "exit_reason": "completed"
+}

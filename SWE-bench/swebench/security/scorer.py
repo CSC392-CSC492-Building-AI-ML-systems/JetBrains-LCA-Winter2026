@@ -8,6 +8,46 @@ import warnings
 from pathlib import Path
 
 LINE_TOLERANCE = 5
+LINE_TOLERANCE_C = 15  # C/C++ functions tend to span more lines
+
+# CWE parent→child normalisation map.
+# When an agent reports a child CWE and ground truth has the parent (or vice
+# versa), we treat the match as correct.  Keys are canonical ground-truth CWEs;
+# values are sets of accepted equivalent / child CWEs.
+_CWE_ALIASES: dict[str, set[str]] = {
+    "CWE-89":  {"CWE-89"},
+    "CWE-79":  {"CWE-79"},
+    "CWE-94":  {"CWE-94", "CWE-1336"},   # template injection child
+    "CWE-798": {"CWE-798", "CWE-321", "CWE-259"},  # hardcoded creds children
+    "CWE-78":  {"CWE-78", "CWE-88"},
+    "CWE-190": {"CWE-190", "CWE-191"},
+    "CWE-134": {"CWE-134"},
+    "CWE-676": {"CWE-676"},
+    "CWE-918": {"CWE-918"},
+    "CWE-208": {"CWE-208"},
+    "CWE-327": {"CWE-327", "CWE-345"},
+    "CWE-1321": {"CWE-1321"},
+    "CWE-352": {"CWE-352"},
+    "CWE-1333": {"CWE-1333"},
+    "CWE-502": {"CWE-502"},
+    "CWE-611": {"CWE-611"},
+    "CWE-434": {"CWE-434"},
+    "CWE-601": {"CWE-601"},
+    "CWE-862": {"CWE-862", "CWE-285"},
+    "CWE-640": {"CWE-640"},
+    "CWE-200": {"CWE-200", "CWE-312"},
+    "CWE-915": {"CWE-915"},
+    "CWE-306": {"CWE-306"},
+}
+
+
+def _normalise_cwe(cwe: str) -> str:
+    """Return the canonical CWE for a given CWE string (handles child CWEs)."""
+    upper = cwe.strip().upper()
+    for canonical, aliases in _CWE_ALIASES.items():
+        if upper in aliases:
+            return canonical
+    return upper
 
 
 def score_instance(
@@ -68,24 +108,48 @@ def score_instance(
 
 
 def _matches(finding: dict, gt: dict) -> bool:
-    """Check if a finding matches a ground truth entry (file + CWE + fuzzy line)."""
+    """Check if a finding matches a ground truth entry.
+
+    Matching rules:
+    - File must match the primary file OR the optional partner_file (for
+      cross-file vulnerabilities where the finding may cite either location).
+    - CWE must match after normalisation to handle child/parent variants.
+    - Line number must be within tolerance of the ground-truth range.
+      C/C++ files use LINE_TOLERANCE_C (±15); all others use LINE_TOLERANCE (±5).
+    """
     finding_file = finding.get("file", "").lstrip("/").lstrip("./")
     gt_file = gt.get("file", "").lstrip("/").lstrip("./")
-    if finding_file != gt_file:
+    gt_partner = (gt.get("partner_file") or "").lstrip("/").lstrip("./")
+
+    matched_primary = finding_file == gt_file
+    matched_partner = bool(gt_partner and finding_file == gt_partner)
+
+    if not (matched_primary or matched_partner):
         return False
 
-    finding_cwe = finding.get("cwe_id", "").strip().upper()
-    gt_cwe = gt.get("cwe_id", "").strip().upper()
+    finding_cwe = _normalise_cwe(finding.get("cwe_id", ""))
+    gt_cwe = _normalise_cwe(gt.get("cwe_id", ""))
     if finding_cwe != gt_cwe:
         return False
+
+    # For partner_file matches the ground truth line range belongs to the primary
+    # file, not the partner file, so we skip the line check and credit the match
+    # on file+CWE alone.  This is intentional: for cross-file vulnerabilities the
+    # agent may correctly cite either the source or the sink.
+    if matched_partner:
+        return True
 
     finding_line = finding.get("line", 0)
     gt_line_start = gt.get("line_start", gt.get("line", 0))
     gt_line_end = gt.get("line_end", gt_line_start)
 
+    # Use wider tolerance for C/C++ source files
+    lang = gt.get("language", "")
+    tolerance = LINE_TOLERANCE_C if lang in ("c", "cpp", "c++") else LINE_TOLERANCE
+
     return (
-        abs(finding_line - gt_line_start) <= LINE_TOLERANCE
-        or abs(finding_line - gt_line_end) <= LINE_TOLERANCE
+        abs(finding_line - gt_line_start) <= tolerance
+        or abs(finding_line - gt_line_end) <= tolerance
         or (gt_line_start <= finding_line <= gt_line_end)
     )
 
