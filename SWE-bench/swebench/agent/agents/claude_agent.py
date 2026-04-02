@@ -18,6 +18,7 @@ if TYPE_CHECKING:
 DEFAULT_MODEL = "claude-sonnet-4-20250514"
 OUTPUT_TRUNCATION_CHARS = 50_000
 HALF_TRUNCATION = OUTPUT_TRUNCATION_CHARS // 2
+API_CALL_DELAY_SECONDS = 0.5
 
 TOOLS = [
     {
@@ -122,6 +123,9 @@ class ClaudeAgent(AgentBase):
 
             metrics.iterations = iteration
             logger.info(f"--- Iteration {iteration}/{self.max_iterations} ---")
+
+            if iteration > 1:
+                time.sleep(API_CALL_DELAY_SECONDS)
 
             try:
                 response = self.api_client.messages.create(

@@ -169,6 +169,7 @@ def main(
     dataset_name: str,
     split: str,
     instance_ids: list[str] | None,
+    max_instances: int | None,
     agent: str,
     model_name_or_path: str,
     max_iterations: int,
@@ -207,7 +208,13 @@ def main(
     skipped = len(dataset) - len(remaining)
     if skipped > 0:
         print(f"Skipping {skipped} already-completed instances.")
-    print(f"Running agent on {len(remaining)} instances...")
+    if max_instances is not None:
+        print(
+            f"Running agent on up to {max_instances} of {len(remaining)} remaining instances "
+            "(early stop enabled)..."
+        )
+    else:
+        print(f"Running agent on {len(remaining)} instances...")
 
     # Set open file limit on Linux
     if platform.system() == "Linux":
@@ -229,8 +236,16 @@ def main(
     # Run instances
     all_metrics: list[AgentMetrics] = []
     pbar = tqdm(remaining, desc="Running agent", unit="instance")
+    processed_instances = 0
 
     for instance in pbar:
+        if max_instances is not None and processed_instances >= max_instances:
+            print(
+                f"Reached max_instances={max_instances}; stopping early after "
+                f"{processed_instances} instances."
+            )
+            break
+
         instance_id = instance[KEY_INSTANCE_ID]
         pbar.set_postfix_str(instance_id)
 
@@ -273,6 +288,8 @@ def main(
                 all_metrics.append(m)
             except Exception:
                 pass
+
+        processed_instances += 1
 
     # Clean images
     clean_images(client, existing_images, cache_level, clean)
@@ -322,6 +339,12 @@ if __name__ == "__main__":
         nargs="+",
         type=str,
         help="Instance IDs to run (space separated)",
+    )
+    parser.add_argument(
+        "--max_instances",
+        type=int,
+        default=None,
+        help="Stop after processing this many instances (without filtering dataset).",
     )
 
     # Agent args
