@@ -50,6 +50,43 @@ You can access the data using the [datasets](https://huggingface.co/docs/dataset
   * [CodeT5](https://huggingface.co/Salesforce/codet5p-110m-embedding);
   * [BM25]().
   
-* Chat-based:
-  * [GPT3.5](https://platform.openai.com/docs/models/gpt-3-5-turbo);
-  * [GPT4](https://platform.openai.com/docs/models/gpt-4).
+* Chat-based (LLMs):
+  * [GPT-3.5 & GPT-4](https://platform.openai.com/docs/models) (OpenAI);
+  * [Gemini 2.5 Flash](https://deepmind.google/technologies/gemini/flash/) (Google);
+  * [Claude 4.5 Haiku](https://www.anthropic.com/claude) (Anthropic).
+
+## 🚀 Running the Baselines & Evaluation
+
+You can execute the chat-based models using the `run.py` script via Hydra, and calculate their accuracy using `eval.py`. Ensure your respective API keys are set as environment variables (`OPENAI_API_KEY`, `GOOGLE_API_KEY`, or `ANTHROPIC_API_KEY`) before running.
+
+**1. Run OpenAI (GPT-3.5)**
+```shell
+python3 -m src.baselines.run backbone=gpt-3.5 data_source.split=dev 
+python3 -m src.baselines.eval data_source.split=dev run_id=openai-gpt-3.5-turbo-1106_issue_only 
+```
+
+**2. Run Gemini**
+```shell
+python3 -m src.baselines.run backbone=gemini-2.5-flash data_source.split=dev 
+python3 -m src.baselines.eval data_source.split=dev run_id=gemini-2.5-flash_issue_only 
+```
+
+**3. Run Claude**
+```shell
+python3 -m src.baselines.run backbone=claude-4.5-haiku data_source.split=dev 
+python3 -m src.baselines.eval data_source.split=dev run_id=claude-haiku-4-5_issue_only
+```
+
+## 📊 Evaluation Metrics
+
+The pipeline includes automated metric collection during generation and evaluation to assess both efficiency and retrieval quality.
+
+* **Performance Metrics (Generation):** Tracks execution efficiency via `run.py`.
+  * Total / Average Time per instance
+  * Token Usage & Estimated Cost (USD)
+  * Valid JSON output compliance rate
+  * Average Files Guessed & Empty Predictions
+* **Accuracy Metrics (Evaluation):** Measures retrieval success via `eval.py`.
+  * **Precision, Recall, & F1 Score**
+  * **False Positive Rate (FPR)**
+  * **Success Rates:** Identifies the percentage of instances where the model guessed *All Correct*, *At Least One Correct*, or *All Incorrect* files.
