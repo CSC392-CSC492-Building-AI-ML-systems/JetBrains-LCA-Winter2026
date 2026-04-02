@@ -37,7 +37,6 @@ class AccuracyMetricsCollector:
         for key, total in self.sums.items():
             avg = total / self.total_instances
 
-            # Only multiply by 100 if it is a percentage metric
             if "Count" in key:
                 log.info(f"Average {key}: {avg:.2f}")
             else:
