@@ -69,6 +69,50 @@ You can access the data using the [datasets](https://huggingface.co/docs/dataset
   * [Gemini 2.5 Flash](https://deepmind.google/technologies/gemini/flash/) (Google);
   * [Claude 4.5 Haiku](https://www.anthropic.com/claude) (Anthropic).
 
+## 🧩 Context Composers
+
+Context composers control how repository context is assembled into the prompt before each model call.
+
+Available composer presets (in `configs/context_composer/`):
+
+* `issue_only`: Uses only issue title/body.
+* `filepath`: Ranks files by relevance and provides file paths.
+* `filepath_imports`: Adds extracted import statements for ranked files.
+* `filepath_signatures`: Adds extracted class/function signatures (Tree-sitter based) for ranked files.
+
+Use a composer with Hydra overrides, for example:
+
+```shell
+python3 -m src.baselines.run backbone=gpt-3.5 context_composer=filepath_signatures data_source.split=dev
+```
+
+The run output directory name includes both model and composer:
+
+```text
+data/run/<backbone.name>_<context_composer.name>/
+```
+
+## ⚙️ Important Hydra Parameters
+
+Common parameters you may want to override:
+
+* `context_composer`: Prompt construction strategy (`issue_only`, `filepath`, `filepath_imports`, `filepath_signatures`).
+* `backbone`: Model/backbone config (for example `gpt-3.5`, `gemini-2.5-flash`, `claude-4.5-haiku`).
+* `data_source.split`: Dataset split (`dev`, `train`, `test`).
+* `data_source.configs`: Language configs (`py`, `java`, `kt`, `mixed` as applicable).
+* `max_instances`: Optional cap on number of instances processed in `run.py`.
+
+Parallel mode parameters in `run.yaml`:
+
+* `parallel` (default `false`): Enables parallel API execution pipeline.
+* `max_repos_on_disk` (default `3`): Limits simultaneously downloaded repos.
+* `max_api_workers` (default `4`): Number of concurrent model API workers.
+
+Evaluation parameters in `eval.yaml`:
+
+* `run_id`: The run folder name to evaluate (must match the run output directory suffix).
+* `data_path`: Root path for `run/` and `eval/` artifacts.
+
 ## 🚀 Running the Baselines & Evaluation
 
 You can execute the chat-based models using the `run.py` script via Hydra, and calculate their accuracy using `eval.py`. Ensure your respective API keys are set as environment variables (`OPENAI_API_KEY`, `GOOGLE_API_KEY`, or `ANTHROPIC_API_KEY`) before running.
