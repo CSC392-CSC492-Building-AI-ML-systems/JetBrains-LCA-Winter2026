@@ -23,6 +23,12 @@ from src.baselines.data_sources.hf_data_source import HFDataSource
 from src.baselines.data_sources.prompt_cache import PromptCache
 
 
+# Citations and Disclaimer:
+# Google. (2026, April 2). what metrics can I add here(probably). Gemini. https://gemini.google.com/share/5555b4329945
+# Note that I discuss with GEMINI about a lot of stuff and this chat history link contain almost everything for this course
+# includes stuff related to the codes I added in here, but I personally cannot remember the specific prompt.
+# It is almost impossible to find it in the 4 month chat history log and it took a long time to even open the link,
+# so please don't waste time trying to find it, but I am sure it's somewhere in the chat history.
 class LocalizationMetricsCollector:
     def __init__(self):
         self.total_time_seconds = 0
