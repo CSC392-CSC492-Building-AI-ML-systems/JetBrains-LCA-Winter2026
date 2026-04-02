@@ -40,3 +40,5 @@ While each sub-project has its own dependencies, interacting with this repositor
 
 ## ✍️ License
 This repository is licensed under the MIT License. Please see the individual directories for specific citations and research paper references related to each benchmark.
+
+"can you create an summarized readme file for the whole repository for me?" Gemini, Google, 2 Apr. 2026, https://gemini.google.com/share/e48140633a10.
