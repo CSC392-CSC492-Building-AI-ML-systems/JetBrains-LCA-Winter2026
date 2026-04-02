@@ -29,7 +29,7 @@ Because each benchmark evaluates a different capability and uses different under
 
 * **For SWE-bench:** `cd SWE-bench && pip install -e .` (Requires Docker)
 * **For Bug Localization:** `cd bug_localization && pip install -r requirements.txt`
-* **For VulnAgentBench:** `cd swebench/security` (Requires Docker and the SWE-bench base installation)
+* **For VulnAgentBench:** `cd SWE-bench/swebench/security` (Requires Docker and the SWE-bench base installation)
 
 ## 🛠️ Global Prerequisites
 
