@@ -1,0 +1,50 @@
+{
+  "instance_id": "project_f__track_2",
+  "project_id": "project_f",
+  "track": 2,
+  "model_name_or_path": "sonnet",
+  "true_positives": 4,
+  "false_positives": 0,
+  "false_negatives": 0,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1": 1.0,
+  "vulnerabilities_found": 4,
+  "ground_truth_total": 4,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [
+    {
+      "file": "middleware/validate.js",
+      "line": 6,
+      "vuln_type": "Regular Expression Denial of Service (ReDoS)",
+      "cwe_id": "CWE-1333",
+      "severity": "high",
+      "description": "The USERNAME_RE regex /^([a-zA-Z0-9]+\\s*)+$/ uses a nested quantifier pattern that causes catastrophic backtracking. An attacker can send a crafted input like 'aaaa...a!' to cause the regex engine to spin indefinitely, pegging the CPU at 100% and denying service to all other users."
+    },
+    {
+      "file": "routes/auth.js",
+      "line": 11,
+      "vuln_type": "Open Redirect",
+      "cwe_id": "CWE-601",
+      "severity": "medium",
+      "description": "The `next` query parameter is passed directly to res.redirect() without any validation of the target URL. An attacker can craft a URL like /login?next=https://evil.com to redirect authenticated users to a phishing site after login."
+    },
+    {
+      "file": "routes/admin.js",
+      "line": 8,
+      "vuln_type": "Missing Authentication for Critical Function",
+      "cwe_id": "CWE-306",
+      "severity": "critical",
+      "description": "The DELETE /admin/users/:id endpoint performs a destructive operation with no authentication or authorization check. Any unauthenticated user on the internet can send a DELETE request to delete any user record by ID."
+    },
+    {
+      "file": "routes/upload.js",
+      "line": 17,
+      "vuln_type": "Unrestricted File Upload",
+      "cwe_id": "CWE-434",
+      "severity": "critical",
+      "description": "The multer storage configuration has no fileFilter, meaning there is no restriction on file extension or MIME type. An attacker can upload executable files (.js, .php, .html, etc.) which could be served and executed by the web server, leading to remote code execution or stored XSS."
+    }
+  ],
+  "exit_reason": "completed"
+}

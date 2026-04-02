@@ -1,0 +1,50 @@
+{
+  "instance_id": "project_a__track_2",
+  "project_id": "project_a",
+  "track": 2,
+  "model_name_or_path": "sonnet",
+  "true_positives": 3,
+  "false_positives": 1,
+  "false_negatives": 0,
+  "precision": 0.75,
+  "recall": 1.0,
+  "f1": 0.8571,
+  "vulnerabilities_found": 4,
+  "ground_truth_total": 3,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [
+    {
+      "file": "routes/users.py",
+      "line": 34,
+      "vuln_type": "SQL Injection",
+      "cwe_id": "CWE-89",
+      "severity": "critical",
+      "description": "User-supplied query parameter `q` is directly concatenated into a raw SQL string: `\"SELECT * FROM users WHERE username LIKE '%\" + query + \"%'\"`. An attacker can break out of the string literal to run arbitrary SQL, including dumping all data or dropping tables."
+    },
+    {
+      "file": "routes/users.py",
+      "line": 42,
+      "vuln_type": "Cross-Site Scripting (XSS)",
+      "cwe_id": "CWE-79",
+      "severity": "high",
+      "description": "The search query is wrapped with `Markup(query)` before being passed to `render_template_string`. This marks the value as safe HTML, disabling Jinja2's auto-escaping and allowing arbitrary HTML/JavaScript injection via the `?q=` parameter."
+    },
+    {
+      "file": "config.py",
+      "line": 4,
+      "vuln_type": "Hardcoded Cryptographic Secret",
+      "cwe_id": "CWE-798",
+      "severity": "critical",
+      "description": "The Flask `SECRET_KEY` is hardcoded as `\"super-secret-hardcoded-key-1234\"` in source code. Anyone who can read the source can forge valid session cookies, enabling full authentication bypass for any user account."
+    },
+    {
+      "file": "routes/users.py",
+      "line": 29,
+      "vuln_type": "Missing Authentication",
+      "cwe_id": "CWE-306",
+      "severity": "high",
+      "description": "The `/users/search` endpoint has no session/login check. Unauthenticated users can freely query and enumerate all usernames and email addresses in the database."
+    }
+  ],
+  "exit_reason": "completed"
+}

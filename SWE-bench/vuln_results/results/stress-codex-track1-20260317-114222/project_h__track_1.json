@@ -1,0 +1,50 @@
+{
+  "instance_id": "project_h__track_1",
+  "project_id": "project_h",
+  "track": 1,
+  "model_name_or_path": "default",
+  "true_positives": 4,
+  "false_positives": 0,
+  "false_negatives": 0,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1": 1.0,
+  "vulnerabilities_found": 4,
+  "ground_truth_total": 4,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [
+    {
+      "file": "routes/auth.js",
+      "line": 48,
+      "vuln_type": "JWT Algorithm Confusion",
+      "cwe_id": "CWE-327",
+      "severity": "critical",
+      "description": "The token verifier accepts both RS256 and HS256 while using the known RSA public key as the verification key. An attacker can forge arbitrary tokens by signing them with HS256 and using the public key as the HMAC secret, which bypasses authentication and allows privilege escalation."
+    },
+    {
+      "file": "routes/settings.js",
+      "line": 23,
+      "vuln_type": "Prototype Pollution",
+      "cwe_id": "CWE-1321",
+      "severity": "high",
+      "description": "The recursive deepMerge function merges attacker-controlled object keys into application objects without blocking special properties such as __proto__ or constructor. A crafted request body can pollute Object.prototype across the process, which can corrupt application logic and potentially enable authorization bypass or other unsafe behavior."
+    },
+    {
+      "file": "routes/payment.js",
+      "line": 21,
+      "vuln_type": "Cross-Site Request Forgery",
+      "cwe_id": "CWE-352",
+      "severity": "high",
+      "description": "The POST /payment/charge endpoint performs a state-changing payment action but does not enforce any CSRF token validation. Because the project already includes CSRF protection middleware that is not applied here, a victim browser could be induced to submit unauthorized payment requests."
+    },
+    {
+      "file": "middleware/input.js",
+      "line": 17,
+      "vuln_type": "Regular Expression Denial of Service",
+      "cwe_id": "CWE-1333",
+      "severity": "medium",
+      "description": "The EMAIL_PATTERN regex contains nested quantifiers and is evaluated against attacker-controlled input. A crafted string can trigger catastrophic backtracking and block the Node.js event loop, causing a denial of service for the entire application."
+    }
+  ],
+  "exit_reason": "completed"
+}

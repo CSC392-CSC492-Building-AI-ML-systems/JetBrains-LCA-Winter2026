@@ -1,0 +1,17 @@
+{
+  "instance_id": "project_h__track_1",
+  "project_id": "project_h",
+  "track": 1,
+  "model_name_or_path": "claude-sonnet-4-20250514",
+  "true_positives": 0,
+  "false_positives": 0,
+  "false_negatives": 4,
+  "precision": 0.0,
+  "recall": 0.0,
+  "f1": 0.0,
+  "vulnerabilities_found": 0,
+  "ground_truth_total": 4,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [],
+  "exit_reason": "error"
+}

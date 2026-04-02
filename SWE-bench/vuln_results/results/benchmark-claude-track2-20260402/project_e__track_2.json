@@ -1,0 +1,58 @@
+{
+  "instance_id": "project_e__track_2",
+  "project_id": "project_e",
+  "track": 2,
+  "model_name_or_path": "sonnet",
+  "true_positives": 4,
+  "false_positives": 1,
+  "false_negatives": 0,
+  "precision": 0.8,
+  "recall": 1.0,
+  "f1": 0.8889,
+  "vulnerabilities_found": 5,
+  "ground_truth_total": 4,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [
+    {
+      "file": "api/import_data.py",
+      "line": 19,
+      "vuln_type": "Unsafe Deserialization",
+      "cwe_id": "CWE-502",
+      "severity": "critical",
+      "description": "pickle.loads() is called on attacker-supplied, base64-decoded POST data with no validation. Any class implementing __reduce__ can be instantiated, allowing arbitrary OS command execution on the server."
+    },
+    {
+      "file": "api/upload.py",
+      "line": 18,
+      "vuln_type": "XML External Entity (XXE) Injection",
+      "cwe_id": "CWE-611",
+      "severity": "critical",
+      "description": "lxml.etree.XMLParser() is instantiated with default settings, leaving external entity resolution enabled. An attacker can upload a crafted XML document to read arbitrary local files (e.g., /etc/passwd) or trigger server-side request forgery via external DTD references."
+    },
+    {
+      "file": "views/render.py",
+      "line": 15,
+      "vuln_type": "Server-Side Template Injection",
+      "cwe_id": "CWE-94",
+      "severity": "critical",
+      "description": "User-controlled input from request.POST['template'] is passed directly to Django's Template() constructor and then rendered. Attackers can inject Django template tags to read sensitive settings, traverse object attributes, or leverage gadget chains for information disclosure or code execution."
+    },
+    {
+      "file": "api/users.py",
+      "line": 20,
+      "vuln_type": "Mass Assignment / Privilege Escalation",
+      "cwe_id": "CWE-915",
+      "severity": "high",
+      "description": "The update_user endpoint iterates over all keys in the JSON request body and blindly calls setattr() on the User model with no field allowlist. An attacker can supply {\"is_staff\": true, \"is_superuser\": true} to grant themselves admin privileges, or set \"password\" to take over any account."
+    },
+    {
+      "file": "myapp/settings.py",
+      "line": 2,
+      "vuln_type": "Hardcoded Secret Key",
+      "cwe_id": "CWE-798",
+      "severity": "high",
+      "description": "SECRET_KEY is a static, hardcoded string ('django-insecure-project-e-bench-key') committed to source control. This compromises the security of Django's session signing, CSRF tokens, password reset links, and any other HMAC-based protection that relies on this key."
+    }
+  ],
+  "exit_reason": "completed"
+}

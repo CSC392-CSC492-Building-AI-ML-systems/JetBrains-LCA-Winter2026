@@ -1,0 +1,50 @@
+{
+  "instance_id": "project_f__track_3",
+  "project_id": "project_f",
+  "track": 3,
+  "model_name_or_path": "sonnet",
+  "true_positives": 4,
+  "false_positives": 0,
+  "false_negatives": 0,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1": 1.0,
+  "vulnerabilities_found": 4,
+  "ground_truth_total": 4,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [
+    {
+      "file": "routes/upload.js",
+      "line": 17,
+      "vuln_type": "Unrestricted File Upload",
+      "cwe_id": "CWE-434",
+      "severity": "critical",
+      "description": "The /upload endpoint uses multer with no fileFilter, allowing upload of any file type including .php, .js, or .html files that could be executed or served by the web server."
+    },
+    {
+      "file": "routes/auth.js",
+      "line": 11,
+      "vuln_type": "Open Redirect",
+      "cwe_id": "CWE-601",
+      "severity": "medium",
+      "description": "The /login route passes req.query.next directly to res.redirect() without origin validation, allowing attackers to craft URLs that redirect users to phishing sites."
+    },
+    {
+      "file": "middleware/validate.js",
+      "line": 6,
+      "vuln_type": "Regular Expression Denial of Service (ReDoS)",
+      "cwe_id": "CWE-1333",
+      "severity": "high",
+      "description": "USERNAME_RE uses a nested quantifier pattern /^([a-zA-Z0-9]+\\s*)+$/ that causes catastrophic backtracking on crafted inputs (e.g. many 'a' chars followed by '!'), enabling CPU-exhaustion DoS attacks."
+    },
+    {
+      "file": "routes/admin.js",
+      "line": 8,
+      "vuln_type": "Missing Authentication for Critical Function",
+      "cwe_id": "CWE-306",
+      "severity": "critical",
+      "description": "The DELETE /admin/users/:id endpoint performs destructive user deletion with no authentication or authorization check, allowing any unauthenticated request to delete any user."
+    }
+  ],
+  "exit_reason": "completed"
+}
