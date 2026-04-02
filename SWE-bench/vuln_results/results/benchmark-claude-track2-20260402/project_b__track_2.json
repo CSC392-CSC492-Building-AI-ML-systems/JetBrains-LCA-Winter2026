@@ -1,0 +1,50 @@
+{
+  "instance_id": "project_b__track_2",
+  "project_id": "project_b",
+  "track": 2,
+  "model_name_or_path": "sonnet",
+  "true_positives": 3,
+  "false_positives": 1,
+  "false_negatives": 0,
+  "precision": 0.75,
+  "recall": 1.0,
+  "f1": 0.8571,
+  "vulnerabilities_found": 4,
+  "ground_truth_total": 3,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [
+    {
+      "file": "routes/auth.py",
+      "line": 29,
+      "vuln_type": "Improper Error Handling / Fail-Open Authentication",
+      "cwe_id": "CWE-755",
+      "severity": "critical",
+      "description": "The bare 'except Exception' block sets authenticated=True on any error, meaning a database failure or runtime exception grants access without valid credentials \u2014 a full authentication bypass."
+    },
+    {
+      "file": "models.py",
+      "line": 17,
+      "vuln_type": "Weak Password Hashing (MD5)",
+      "cwe_id": "CWE-916",
+      "severity": "high",
+      "description": "Passwords are hashed using MD5 with no salt. MD5 is cryptographically broken, has no work factor, and is trivially brute-forced with modern hardware or rainbow tables. Use bcrypt, scrypt, or argon2 instead."
+    },
+    {
+      "file": "routes/auth.py",
+      "line": 22,
+      "vuln_type": "Timing Attack on Password Comparison",
+      "cwe_id": "CWE-208",
+      "severity": "medium",
+      "description": "Direct string equality (==) on password hashes leaks timing information, allowing attackers to enumerate valid hashes character by character. Use hmac.compare_digest() for constant-time comparison."
+    },
+    {
+      "file": "app.py",
+      "line": 8,
+      "vuln_type": "Weak Default Secret Key",
+      "cwe_id": "CWE-321",
+      "severity": "high",
+      "description": "SECRET_KEY falls back to the hardcoded string 'dev-key' if the environment variable is not set. A predictable secret key allows attackers to forge session cookies. Enforce a strong randomly-generated key in production."
+    }
+  ],
+  "exit_reason": "completed"
+}

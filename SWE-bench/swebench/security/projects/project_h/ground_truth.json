@@ -1,0 +1,30 @@
+[
+  {
+    "cwe_id": "CWE-327",
+    "file": "routes/auth.js",
+    "line_start": 48,
+    "line_end": 48,
+    "description": "JWT algorithm confusion: jwt.verify accepts both RS256 and HS256, allowing an attacker to take the known PUBLIC_KEY and re-sign a forged token payload using HS256, which the verifier will accept as valid."
+  },
+  {
+    "cwe_id": "CWE-1321",
+    "file": "routes/settings.js",
+    "line_start": 23,
+    "line_end": 23,
+    "description": "Prototype pollution: deepMerge recurses into nested objects without checking for __proto__ or constructor keys, so a crafted payload like {\"__proto__\":{\"isAdmin\":true}} will pollute Object.prototype for all objects in the process."
+  },
+  {
+    "cwe_id": "CWE-352",
+    "file": "routes/payment.js",
+    "line_start": 21,
+    "line_end": 21,
+    "description": "CSRF: the POST /payment/charge endpoint performs a state-changing financial operation with no CSRF token validation. The security/csrf.js module provides verifyCsrfToken but it is never imported or applied to this route."
+  },
+  {
+    "cwe_id": "CWE-1333",
+    "file": "middleware/input.js",
+    "line_start": 17,
+    "line_end": 17,
+    "description": "ReDoS: EMAIL_PATTERN uses a catastrophically backtracking regex /^([a-zA-Z0-9]+\\.?)+@([a-zA-Z0-9]+\\.?)+\\.[a-zA-Z]{2,}$/ with nested quantifiers. A crafted input such as 'aaaaaaaaaaaaaaaaaaaaaaaaaaa!' causes O(2^n) backtracking and blocks the event loop."
+  }
+]

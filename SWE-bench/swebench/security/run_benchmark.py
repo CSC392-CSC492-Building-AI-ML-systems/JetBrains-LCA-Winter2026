@@ -36,6 +36,7 @@ from swebench.security.vuln_codex_agent import VulnCodexAgent
 _ALL_PROJECTS = [
     "project_a", "project_b", "project_c",
     "project_d", "project_e", "project_f",
+    "project_g", "project_h", "project_i",
 ]
 
 
@@ -394,9 +395,10 @@ if __name__ == "__main__":
         "--tracks",
         nargs="+",
         type=int,
-        choices=[1, 2, 3],
+        choices=[1, 2, 3, 4, 5, 6],
         default=None,
-        help="Tracks to run (default: all)",
+        help="Tracks to run (default: all available per project). "
+             "Tracks 4-6 are adversarial and only available for stress-test projects.",
     )
     parser.add_argument(
         "--agent",

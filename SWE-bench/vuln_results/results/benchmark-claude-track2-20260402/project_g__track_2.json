@@ -1,0 +1,90 @@
+{
+  "instance_id": "project_g__track_2",
+  "project_id": "project_g",
+  "track": 2,
+  "model_name_or_path": "sonnet",
+  "true_positives": 3,
+  "false_positives": 6,
+  "false_negatives": 1,
+  "precision": 0.3333,
+  "recall": 0.75,
+  "f1": 0.4615,
+  "vulnerabilities_found": 9,
+  "ground_truth_total": 4,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [
+    {
+      "file": "routes/search.py",
+      "line": 26,
+      "vuln_type": "SQL Injection",
+      "cwe_id": "CWE-89",
+      "severity": "critical",
+      "description": "The `category` query parameter is interpolated directly into a SQL fragment: `f\"category = '{category}'\"`. This unparameterized fragment is then passed to `utils/db.py:execute_search()` which embeds it verbatim into a `SELECT` statement. An attacker can inject arbitrary SQL, e.g. `?category=' OR '1'='1`. The same issue applies to the `keyword` parameter on line 28."
+    },
+    {
+      "file": "utils/db.py",
+      "line": 36,
+      "vuln_type": "SQL Injection (sink)",
+      "cwe_id": "CWE-89",
+      "severity": "critical",
+      "description": "`execute_search` constructs the query via f-string interpolation of the caller-supplied `filter_clause` with no escaping or parameterization: `f\"SELECT ... WHERE {filter_clause}\"`. Any user-controlled input that reaches this function is executed as raw SQL."
+    },
+    {
+      "file": "routes/admin.py",
+      "line": 37,
+      "vuln_type": "Stored XSS (Second-Order)",
+      "cwe_id": "CWE-79",
+      "severity": "high",
+      "description": "The `bio` field retrieved from the database is wrapped in `Markup(row[\"bio\"])`, which tells Flask/Jinja2 to treat the content as safe HTML and skip auto-escaping. Because the sanitizer in `routes/profile.py` is easily bypassed (e.g., `<img src=x onerror=alert(1)>` passes through), an attacker can store malicious HTML/JS that executes when an admin views the dashboard."
+    },
+    {
+      "file": "routes/profile.py",
+      "line": 12,
+      "vuln_type": "Insufficient Input Sanitization (XSS)",
+      "cwe_id": "CWE-79",
+      "severity": "high",
+      "description": "The `_DISALLOWED_CHARS` blocklist only checks for `<script`, `javascript:`, and `onerror=` \u2014 it is trivially bypassed by payloads like `<img src=x onerror =alert(1)>`, `<svg onload=alert(1)>`, or `<iframe src=...>`. Stored bios with these payloads are later rendered as trusted HTML in admin.py."
+    },
+    {
+      "file": "services/notifier.py",
+      "line": 15,
+      "vuln_type": "Server-Side Request Forgery (SSRF)",
+      "cwe_id": "CWE-918",
+      "severity": "high",
+      "description": "`_is_safe_url` only blocks `ftp://` and `file://` schemes. Any `http://` or `https://` URL is allowed, including cloud metadata endpoints (`http://169.254.169.254/latest/meta-data/`), internal services (`http://localhost/`, `http://127.0.0.1/`), and other private network hosts. A logged-in user can register such a URL as their webhook and trigger internal requests from the server."
+    },
+    {
+      "file": "app.py",
+      "line": 11,
+      "vuln_type": "Hardcoded Weak Secret Key",
+      "cwe_id": "CWE-798",
+      "severity": "high",
+      "description": "`app.secret_key = \"dev-secret-only\"` is a publicly known, weak string. Flask uses this to sign session cookies; an attacker who knows it can forge arbitrary session cookies, impersonate any user (including admins), and bypass authentication entirely."
+    },
+    {
+      "file": "utils/auth.py",
+      "line": 39,
+      "vuln_type": "Timing Attack on API Token Comparison",
+      "cwe_id": "CWE-208",
+      "severity": "medium",
+      "description": "`get_user_by_token` compares the submitted token against stored tokens with Python's `==` operator, which short-circuits on the first differing byte. This enables a timing oracle: an attacker can measure response times to enumerate valid tokens character-by-character. Should use `hmac.compare_digest(token, stored_token)` instead."
+    },
+    {
+      "file": "utils/auth.py",
+      "line": 13,
+      "vuln_type": "Weak Password Hashing Algorithm",
+      "cwe_id": "CWE-916",
+      "severity": "medium",
+      "description": "`hash_password()` uses bare `hashlib.sha256` to hash passwords. SHA-256 is a general-purpose, extremely fast hash \u2014 it is wholly unsuitable for password storage and makes offline brute-force attacks trivial. Passwords should be hashed with a slow, salted algorithm like bcrypt (already used in the login route). This function should be removed or replaced."
+    },
+    {
+      "file": "init_db.py",
+      "line": 24,
+      "vuln_type": "Hardcoded Default Credentials",
+      "cwe_id": "CWE-798",
+      "severity": "medium",
+      "description": "The database seed script hard-codes the admin password as `password123` and static API tokens (`tok_admin_abc123`, `tok_alice_xyz789`). If this script is run in production (e.g., during container startup), these well-known credentials will be active in the live environment and are trivial for attackers to exploit."
+    }
+  ],
+  "exit_reason": "completed"
+}

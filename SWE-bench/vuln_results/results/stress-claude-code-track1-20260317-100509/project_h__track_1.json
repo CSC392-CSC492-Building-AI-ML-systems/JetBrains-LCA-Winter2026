@@ -1,0 +1,114 @@
+{
+  "instance_id": "project_h__track_1",
+  "project_id": "project_h",
+  "track": 1,
+  "model_name_or_path": "claude-sonnet-4-6",
+  "true_positives": 4,
+  "false_positives": 8,
+  "false_negatives": 0,
+  "precision": 0.3333,
+  "recall": 1.0,
+  "f1": 0.5,
+  "vulnerabilities_found": 12,
+  "ground_truth_total": 4,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [
+    {
+      "file": "routes/auth.js",
+      "line": 48,
+      "vuln_type": "JWT Algorithm Confusion",
+      "cwe_id": "CWE-327",
+      "severity": "critical",
+      "description": "The jwt.verify() call accepts both RS256 and HS256 algorithms. Since the RS256 public key is hardcoded in the same file, an attacker can use it as the HMAC secret, forge an arbitrary JWT payload (e.g., elevating role to admin), sign it with HS256, and submit it. The verifier will accept it as valid."
+    },
+    {
+      "file": "routes/settings.js",
+      "line": 23,
+      "vuln_type": "Prototype Pollution",
+      "cwe_id": "CWE-1321",
+      "severity": "high",
+      "description": "The deepMerge() function recursively merges user-supplied JSON into the stored settings object without filtering special keys. An attacker can POST {\"__proto__\": {\"isAdmin\": true}} to POST /settings/merge, causing Object.prototype.isAdmin to be set to true for every object in the Node.js process, enabling authentication bypass, privilege escalation, or RCE."
+    },
+    {
+      "file": "routes/payment.js",
+      "line": 21,
+      "vuln_type": "Cross-Site Request Forgery (CSRF)",
+      "cwe_id": "CWE-352",
+      "severity": "high",
+      "description": "The POST /payment/charge endpoint performs a state-changing financial operation with no CSRF token validation. A CSRF protection module (security/csrf.js) exists but is explicitly commented out. A malicious website can trick an authenticated user's browser into making a cross-origin POST request that charges money to their account."
+    },
+    {
+      "file": "middleware/input.js",
+      "line": 17,
+      "vuln_type": "Regular Expression Denial of Service (ReDoS)",
+      "cwe_id": "CWE-1333",
+      "severity": "high",
+      "description": "The EMAIL_PATTERN regex /^([a-zA-Z0-9]+\\.?)+@([a-zA-Z0-9]+\\.?)+\\.[a-zA-Z]{2,}$/ uses nested quantifiers (group+)+ which cause catastrophic backtracking. Applied globally to all routes, an attacker submitting a crafted string can cause O(2^n) backtracking, blocking Node.js's event loop and causing complete denial of service."
+    },
+    {
+      "file": "routes/auth.js",
+      "line": 22,
+      "vuln_type": "Hardcoded Credentials",
+      "cwe_id": "CWE-798",
+      "severity": "high",
+      "description": "The private key defaults to the literal string 'fallback-dev-secret' if the environment variable JWT_PRIVATE_KEY is not set. If deployed without the environment variable, the secret is publicly known and all tokens can be forged."
+    },
+    {
+      "file": "routes/auth.js",
+      "line": 16,
+      "vuln_type": "Hardcoded Cryptographic Key",
+      "cwe_id": "CWE-321",
+      "severity": "medium",
+      "description": "The RSA public key is hardcoded directly in source code. While not secret by itself, embedding it in source enables the JWT algorithm confusion attack. Keys should be managed externally to allow rotation and prevent algorithm confusion."
+    },
+    {
+      "file": "routes/settings.js",
+      "line": 34,
+      "vuln_type": "Missing Authentication",
+      "cwe_id": "CWE-306",
+      "severity": "high",
+      "description": "Authentication for settings endpoints relies solely on the presence of an x-user-id HTTP header with no JWT validation, session verification, or cryptographic proof of identity. Any client can set this header to read or modify any user's settings."
+    },
+    {
+      "file": "routes/payment.js",
+      "line": 22,
+      "vuln_type": "Missing Authentication",
+      "cwe_id": "CWE-306",
+      "severity": "high",
+      "description": "Payment endpoints trust the x-user-id header without cryptographic verification. Any client can supply an arbitrary user ID to charge payments or view payment history of any other user."
+    },
+    {
+      "file": "routes/payment.js",
+      "line": 41,
+      "vuln_type": "Insecure Direct Object Reference (IDOR)",
+      "cwe_id": "CWE-639",
+      "severity": "high",
+      "description": "Since the x-user-id header is fully user-controlled and not validated against a session or token, any user can supply any user_id value to view or create payments on behalf of another user, constituting a direct IDOR via the unverified identity header."
+    },
+    {
+      "file": "init_db.js",
+      "line": 30,
+      "vuln_type": "Hardcoded Weak Default Credentials",
+      "cwe_id": "CWE-521",
+      "severity": "medium",
+      "description": "Both the admin and alice accounts are initialized with the hardcoded password 'password123'. While bcrypt is used for hashing, the weak default password means any attacker who discovers these usernames can trivially brute-force or guess the password."
+    },
+    {
+      "file": "security/ratelimit.js",
+      "line": 11,
+      "vuln_type": "Insufficient Rate Limiting / IP Spoofing",
+      "cwe_id": "CWE-799",
+      "severity": "low",
+      "description": "The rate limiter uses req.ip which can be trivially spoofed via X-Forwarded-For if the app is behind a proxy. It also stores counts in a process-local Map, providing no protection in multi-process or load-balanced deployments."
+    },
+    {
+      "file": "routes/settings.js",
+      "line": 44,
+      "vuln_type": "Cross-Site Request Forgery (CSRF)",
+      "cwe_id": "CWE-352",
+      "severity": "medium",
+      "description": "The POST /settings/merge endpoint is a state-changing operation with no CSRF token validation. An attacker can perform CSRF to modify a victim's settings, and combined with the prototype pollution vulnerability, this becomes especially dangerous."
+    }
+  ],
+  "exit_reason": "completed"
+}

@@ -104,6 +104,7 @@ class VulnCodexAgent(AgentBase):
             self.codex_path,
             "exec",
             "--dangerously-bypass-approvals-and-sandbox",
+            "--skip-git-repo-check",
             "--json",
             full_prompt,
         ]

@@ -1,0 +1,58 @@
+{
+  "instance_id": "project_c__track_2",
+  "project_id": "project_c",
+  "track": 2,
+  "model_name_or_path": "sonnet",
+  "true_positives": 3,
+  "false_positives": 2,
+  "false_negatives": 1,
+  "precision": 0.6,
+  "recall": 0.75,
+  "f1": 0.6667,
+  "vulnerabilities_found": 5,
+  "ground_truth_total": 4,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [
+    {
+      "file": "routes/admin.js",
+      "line": 14,
+      "vuln_type": "OS Command Injection",
+      "cwe_id": "CWE-78",
+      "severity": "critical",
+      "description": "User-supplied 'host' is concatenated directly into a shell command string passed to exec(). An attacker can inject arbitrary shell commands using metacharacters (e.g., '; rm -rf /', '| cat /etc/passwd'). Additionally, the endpoint only checks requireAuth and is not restricted to admin-role users."
+    },
+    {
+      "file": "routes/files.js",
+      "line": 12,
+      "vuln_type": "Path Traversal",
+      "cwe_id": "CWE-22",
+      "severity": "high",
+      "description": "The filename from the URL parameter is joined to FILES_DIR via path.join() without validating that the resolved path stays within FILES_DIR. An attacker can supply '../../../etc/passwd' to read arbitrary files on the server."
+    },
+    {
+      "file": "routes/fetch.js",
+      "line": 15,
+      "vuln_type": "Server-Side Request Forgery (SSRF)",
+      "cwe_id": "CWE-918",
+      "severity": "high",
+      "description": "User-supplied URL is passed directly to axios.get() with no validation or allowlist. An attacker can make the server issue requests to internal services such as cloud metadata endpoints (http://169.254.169.254/) or other internal network resources."
+    },
+    {
+      "file": "routes/users.js",
+      "line": 14,
+      "vuln_type": "Insecure Direct Object Reference (IDOR)",
+      "cwe_id": "CWE-639",
+      "severity": "high",
+      "description": "The /api/users/:id endpoint returns any user's full profile (including email and role) to any authenticated user without verifying ownership or admin privilege. Any logged-in user can enumerate all other accounts by incrementing the ID."
+    },
+    {
+      "file": "app.js",
+      "line": 14,
+      "vuln_type": "Hardcoded Fallback Session Secret",
+      "cwe_id": "CWE-798",
+      "severity": "medium",
+      "description": "The session secret falls back to the hardcoded string 'dev-secret' when SESSION_SECRET env var is not set. If the variable is missing in production, session cookies can be forged by anyone who knows this public default value."
+    }
+  ],
+  "exit_reason": "completed"
+}

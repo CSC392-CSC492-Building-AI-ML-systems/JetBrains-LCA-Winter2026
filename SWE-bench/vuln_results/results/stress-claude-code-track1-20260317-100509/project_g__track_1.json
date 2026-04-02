@@ -1,0 +1,130 @@
+{
+  "instance_id": "project_g__track_1",
+  "project_id": "project_g",
+  "track": 1,
+  "model_name_or_path": "claude-sonnet-4-6",
+  "true_positives": 4,
+  "false_positives": 10,
+  "false_negatives": 0,
+  "precision": 0.2857,
+  "recall": 1.0,
+  "f1": 0.4444,
+  "vulnerabilities_found": 14,
+  "ground_truth_total": 4,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [
+    {
+      "file": "app.py",
+      "line": 11,
+      "vuln_type": "Hardcoded Secret Key",
+      "cwe_id": "CWE-798",
+      "severity": "critical",
+      "description": "app.secret_key is set to the hardcoded string 'dev-secret-only', committed to source control. This key signs Flask session cookies; an attacker who knows it can forge arbitrary session cookies to impersonate any user including admins."
+    },
+    {
+      "file": "init_db.py",
+      "line": 22,
+      "vuln_type": "Hardcoded Credentials",
+      "cwe_id": "CWE-798",
+      "severity": "critical",
+      "description": "Admin API token 'tok_admin_abc123', user token 'tok_alice_xyz789', and password 'password123' are hardcoded in the database seed script committed to source control. Any repository reader can authenticate as admin or use the tokens directly."
+    },
+    {
+      "file": "utils/db.py",
+      "line": 36,
+      "vuln_type": "SQL Injection",
+      "cwe_id": "CWE-89",
+      "severity": "critical",
+      "description": "The execute_search() function interpolates a raw filter_clause directly into an SQL f-string: f\"SELECT id, title, body, category FROM posts WHERE {filter_clause}\". The clause is built in routes/search.py from unescaped user-supplied query parameters, allowing arbitrary SQL injection."
+    },
+    {
+      "file": "routes/search.py",
+      "line": 27,
+      "vuln_type": "SQL Injection",
+      "cwe_id": "CWE-89",
+      "severity": "critical",
+      "description": "User-controlled 'category' and 'keyword' query parameters are embedded directly into SQL fragment strings via Python f-strings (e.g. f\"category = '{category}'\" and f\"title LIKE '%{keyword}%'\") with no parameterization or escaping before being passed to execute_search()."
+    },
+    {
+      "file": "routes/admin.py",
+      "line": 37,
+      "vuln_type": "Stored XSS",
+      "cwe_id": "CWE-79",
+      "severity": "high",
+      "description": "Attacker-controlled 'bio' content from the database is wrapped with Markup(row['bio']), explicitly disabling Jinja2 auto-escaping. Any HTML/JS payload stored in the bio field (e.g. <svg onload=alert(1)>) will execute as raw HTML in the admin's browser."
+    },
+    {
+      "file": "routes/profile.py",
+      "line": 17,
+      "vuln_type": "Stored XSS",
+      "cwe_id": "CWE-79",
+      "severity": "high",
+      "description": "The _sanitize_bio() function blocks only a tiny hardcoded set of patterns (<script, javascript:, onerror=). It is trivially bypassed with case variations (ONERROR=), alternative event handlers (onload=, onfocus=), or SVG payloads. The false sanitizer provides no real protection against stored XSS."
+    },
+    {
+      "file": "services/notifier.py",
+      "line": 38,
+      "vuln_type": "Server-Side Request Forgery (SSRF)",
+      "cwe_id": "CWE-918",
+      "severity": "high",
+      "description": "send_webhook() issues an HTTP POST to a user-supplied webhook_url with only an incomplete blocklist that rejects ftp:// and file:// schemes. HTTP/HTTPS requests to internal cloud metadata endpoints (http://169.254.169.254/), localhost, and internal RFC-1918 addresses are unrestricted, enabling internal network probing and metadata exfiltration."
+    },
+    {
+      "file": "routes/webhooks.py",
+      "line": 13,
+      "vuln_type": "SSRF Entry Point",
+      "cwe_id": "CWE-918",
+      "severity": "high",
+      "description": "The /webhooks/set endpoint accepts any URL string from an authenticated user and stores it without validation. No allowlist, no hostname resolution check, and no scheme restriction beyond the notifier's incomplete blocklist. Stored URLs are later fetched server-side by notifier.py."
+    },
+    {
+      "file": "utils/auth.py",
+      "line": 39,
+      "vuln_type": "Timing Side-Channel",
+      "cwe_id": "CWE-208",
+      "severity": "high",
+      "description": "Non-constant-time string comparison (==) is used to compare API tokens in get_user_by_token(). An attacker can measure response time differences across many requests to enumerate valid tokens character by character. Should use hmac.compare_digest() instead."
+    },
+    {
+      "file": "utils/auth.py",
+      "line": 12,
+      "vuln_type": "Weak Password Hashing",
+      "cwe_id": "CWE-916",
+      "severity": "high",
+      "description": "hash_password() uses plain SHA-256 (hashlib.sha256) without any salt for 'legacy accounts'. SHA-256 without salting is fast and susceptible to rainbow table and brute-force attacks. A dedicated password hashing algorithm (bcrypt, argon2, scrypt) must be used."
+    },
+    {
+      "file": "app.py",
+      "line": 1,
+      "vuln_type": "Missing CSRF Protection",
+      "cwe_id": "CWE-352",
+      "severity": "high",
+      "description": "The application has no CSRF protection (no Flask-WTF, no CSRF token middleware, no SameSite cookie policy). All state-changing POST endpoints (/api/login, /api/posts, /profile/update, /webhooks/set) are vulnerable to cross-site request forgery attacks."
+    },
+    {
+      "file": "app.py",
+      "line": 11,
+      "vuln_type": "Insecure Session Cookie Configuration",
+      "cwe_id": "CWE-614",
+      "severity": "medium",
+      "description": "The Flask app does not set SESSION_COOKIE_SECURE=True, SESSION_COOKIE_HTTPONLY=True, or SESSION_COOKIE_SAMESITE. Session cookies may be sent over HTTP (cleartext), accessed by JavaScript (XSS cookie theft), and submitted on cross-origin requests (CSRF)."
+    },
+    {
+      "file": "app.py",
+      "line": 1,
+      "vuln_type": "Missing Rate Limiting",
+      "cwe_id": "CWE-307",
+      "severity": "medium",
+      "description": "No rate limiting is applied to any endpoint, including /api/login. This allows unlimited brute-force attempts against user passwords and API tokens without throttling, lockout, or CAPTCHA."
+    },
+    {
+      "file": "utils/auth.py",
+      "line": 28,
+      "vuln_type": "Inefficient Token Lookup Amplifying Timing Oracle",
+      "cwe_id": "CWE-307",
+      "severity": "medium",
+      "description": "get_user_by_token() fetches ALL users from the database and iterates in Python to find a matching token. This full table scan amplifies the timing side-channel vulnerability and degrades performance as user counts grow. A direct indexed query with constant-time comparison should be used."
+    }
+  ],
+  "exit_reason": "completed"
+}
