@@ -1,0 +1,50 @@
+{
+  "instance_id": "project_d__track_3",
+  "project_id": "project_d",
+  "track": 3,
+  "model_name_or_path": "sonnet",
+  "true_positives": 3,
+  "false_positives": 1,
+  "false_negatives": 1,
+  "precision": 0.75,
+  "recall": 0.75,
+  "f1": 0.75,
+  "vulnerabilities_found": 4,
+  "ground_truth_total": 4,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [
+    {
+      "file": "auth/tokens.py",
+      "line": 4,
+      "vuln_type": "Hardcoded Credentials",
+      "cwe_id": "CWE-798",
+      "severity": "critical",
+      "description": "JWT signing secret is hardcoded as SECRET_KEY = \"super-secret-key\". This weak, predictable key allows attackers to forge valid JWT tokens for any user, completely bypassing authentication."
+    },
+    {
+      "file": "routes/auth.py",
+      "line": 22,
+      "vuln_type": "Weak Password Recovery",
+      "cwe_id": "CWE-640",
+      "severity": "high",
+      "description": "Password reset token is derived from predictable data (str(user.id) + \"reset\"). Attackers can enumerate/guess reset tokens for any user ID. Tokens are also never expired or invalidated after use."
+    },
+    {
+      "file": "routes/admin.py",
+      "line": 14,
+      "vuln_type": "Missing Authorization",
+      "cwe_id": "CWE-862",
+      "severity": "critical",
+      "description": "Admin role check reads the 'role' field from the client-controlled request body rather than from the server-side JWT. Any user can send {\"role\": \"admin\"} in the request body to gain full admin access to GET /admin/users and DELETE /admin/users/<id>."
+    },
+    {
+      "file": "routes/posts.py",
+      "line": 17,
+      "vuln_type": "Cross-Site Request Forgery",
+      "cwe_id": "CWE-352",
+      "severity": "medium",
+      "description": "The POST /posts/<id>/delete endpoint performs a state-changing action with no CSRF token validation. A malicious page can trigger post deletions on behalf of an authenticated user via a crafted form submission."
+    }
+  ],
+  "exit_reason": "completed"
+}

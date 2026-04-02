@@ -1,0 +1,42 @@
+{
+  "instance_id": "project_a__track_3",
+  "project_id": "project_a",
+  "track": 3,
+  "model_name_or_path": "sonnet",
+  "true_positives": 1,
+  "false_positives": 2,
+  "false_negatives": 2,
+  "precision": 0.3333,
+  "recall": 0.3333,
+  "f1": 0.3333,
+  "vulnerabilities_found": 3,
+  "ground_truth_total": 3,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [
+    {
+      "file": "routes/users.py",
+      "line": 44,
+      "vuln_type": "SQL Injection",
+      "cwe_id": "CWE-89",
+      "severity": "critical",
+      "description": "User input from the 'q' query parameter is concatenated directly into a raw SQL string: `sql = \"SELECT * FROM users WHERE username LIKE '%\" + query + \"%'\"`. An attacker can escape the LIKE clause and inject arbitrary SQL, enabling data exfiltration, authentication bypass, or data destruction."
+    },
+    {
+      "file": "routes/users.py",
+      "line": 50,
+      "vuln_type": "Cross-Site Scripting (XSS)",
+      "cwe_id": "CWE-79",
+      "severity": "high",
+      "description": "The user-supplied 'q' parameter is wrapped in `markupsafe.Markup(query)` before being passed to `render_template_string`. `Markup()` marks the string as HTML-safe and disables Jinja2's auto-escaping, so any HTML or JavaScript in the query string is rendered raw in the browser, enabling stored or reflected XSS."
+    },
+    {
+      "file": "config.py",
+      "line": 3,
+      "vuln_type": "Hardcoded Credentials",
+      "cwe_id": "CWE-798",
+      "severity": "high",
+      "description": "The Flask SECRET_KEY is hardcoded as `super-secret-hardcoded-key-1234`. Anyone with access to the source code can forge session cookies, leading to authentication bypass and privilege escalation. The key should be loaded from an environment variable and never committed to source control."
+    }
+  ],
+  "exit_reason": "completed"
+}

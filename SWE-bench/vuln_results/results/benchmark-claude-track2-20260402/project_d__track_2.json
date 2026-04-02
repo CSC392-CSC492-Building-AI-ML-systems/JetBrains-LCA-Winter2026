@@ -1,0 +1,90 @@
+{
+  "instance_id": "project_d__track_2",
+  "project_id": "project_d",
+  "track": 2,
+  "model_name_or_path": "sonnet",
+  "true_positives": 3,
+  "false_positives": 6,
+  "false_negatives": 1,
+  "precision": 0.3333,
+  "recall": 0.75,
+  "f1": 0.4615,
+  "vulnerabilities_found": 9,
+  "ground_truth_total": 4,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [
+    {
+      "file": "auth/tokens.py",
+      "line": 5,
+      "vuln_type": "Hardcoded Cryptographic Secret",
+      "cwe_id": "CWE-321",
+      "severity": "critical",
+      "description": "The JWT signing secret is hardcoded as the literal string 'super-secret-key'. Anyone with access to the source code (or who can guess it) can forge valid JWTs for any user, including admins. This secret must be loaded from a secure environment variable and rotated regularly."
+    },
+    {
+      "file": "routes/admin.py",
+      "line": 14,
+      "vuln_type": "Broken Access Control (Client-Controlled Role)",
+      "cwe_id": "CWE-862",
+      "severity": "critical",
+      "description": "The admin check for /admin/users reads 'role' from the JSON request body (client-supplied), not from the server-side JWT or session. Any unauthenticated caller can simply send {\"role\": \"admin\"} to gain full access to the user list. The role must be extracted from the verified JWT payload instead."
+    },
+    {
+      "file": "routes/admin.py",
+      "line": 22,
+      "vuln_type": "Broken Access Control (Client-Controlled Role)",
+      "cwe_id": "CWE-862",
+      "severity": "critical",
+      "description": "Same client-supplied role flaw as line 14, but for the DELETE /admin/users/<id> endpoint. Any caller who sends {\"role\": \"admin\"} in the body can delete arbitrary user accounts without being authenticated or authorized."
+    },
+    {
+      "file": "routes/auth.py",
+      "line": 22,
+      "vuln_type": "Weak / Predictable Password Reset Token",
+      "cwe_id": "CWE-640",
+      "severity": "critical",
+      "description": "The password reset token is constructed by simply concatenating the user's numeric ID with the static string 'reset' (e.g. '42reset'). An attacker who knows or can enumerate user IDs can trivially forge reset tokens for any account, including admins, without ever receiving an email."
+    },
+    {
+      "file": "routes/auth.py",
+      "line": 31,
+      "vuln_type": "Password Reset Token Never Invalidated",
+      "cwe_id": "CWE-640",
+      "severity": "high",
+      "description": "After a reset token is used to change a password it is never removed from PASSWORD_RESET_TOKENS, and no expiry is stored. Tokens remain valid indefinitely, so a stolen or previously-issued token can be replayed at any future time to take over the account again."
+    },
+    {
+      "file": "routes/auth.py",
+      "line": 24,
+      "vuln_type": "Sensitive Token Exposed in API Response",
+      "cwe_id": "CWE-200",
+      "severity": "high",
+      "description": "The /forgot-password endpoint returns the reset token directly in the JSON response body instead of sending it out-of-band (e.g. via email). Any intermediary that can observe the HTTP response (logs, proxies, front-end JavaScript) immediately obtains the token and can use it to take over the account."
+    },
+    {
+      "file": "routes/posts.py",
+      "line": 16,
+      "vuln_type": "Insecure Direct Object Reference \u2013 Missing Ownership Check",
+      "cwe_id": "CWE-639",
+      "severity": "high",
+      "description": "The DELETE /posts/<post_id>/delete endpoint verifies only that the caller holds a valid JWT; it does not check whether the post belongs to that user. Any authenticated user can delete any other user's posts by supplying an arbitrary post_id."
+    },
+    {
+      "file": "auth/tokens.py",
+      "line": 17,
+      "vuln_type": "PII Exposure in JWT Payload",
+      "cwe_id": "CWE-200",
+      "severity": "medium",
+      "description": "The JWT payload includes the user's email, phone number, and home address. JWT payloads are only base64-encoded, not encrypted. Anyone who obtains the token (client storage, server logs, network interception) can decode and read this PII. Only the minimum necessary claims (e.g. user id, role) should be included."
+    },
+    {
+      "file": "app.py",
+      "line": 8,
+      "vuln_type": "Missing Flask SECRET_KEY",
+      "cwe_id": "CWE-330",
+      "severity": "medium",
+      "description": "app.config['SECRET_KEY'] is never set. Flask requires this value to cryptographically sign session cookies and other security-sensitive data. Without it the application either fails at runtime when sessions are used or falls back to an empty/None key, making session data trivially forgeable."
+    }
+  ],
+  "exit_reason": "completed"
+}

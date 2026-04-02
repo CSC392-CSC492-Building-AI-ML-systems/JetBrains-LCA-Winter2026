@@ -1,0 +1,42 @@
+{
+  "instance_id": "project_b__track_3",
+  "project_id": "project_b",
+  "track": 3,
+  "model_name_or_path": "sonnet",
+  "true_positives": 3,
+  "false_positives": 0,
+  "false_negatives": 0,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1": 1.0,
+  "vulnerabilities_found": 3,
+  "ground_truth_total": 3,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [
+    {
+      "file": "routes/auth.py",
+      "line": 22,
+      "vuln_type": "Timing Attack via Non-Constant-Time Comparison",
+      "cwe_id": "CWE-208",
+      "severity": "medium",
+      "description": "The password hash comparison uses Python's `==` operator (`user.password_hash == candidate_hash`), which is not constant-time. An attacker can measure response time differences to enumerate the hash character by character. Should use `hmac.compare_digest()` instead."
+    },
+    {
+      "file": "routes/auth.py",
+      "line": 27,
+      "vuln_type": "Fail-Open Exception Handling",
+      "cwe_id": "CWE-755",
+      "severity": "critical",
+      "description": "A bare `except Exception` block sets `authenticated = True` on any error (DB failure, runtime exception, etc.), granting access without valid credentials. Any unexpected error during the login flow will silently log in the attacker."
+    },
+    {
+      "file": "models.py",
+      "line": 17,
+      "vuln_type": "Weak Password Hashing Algorithm",
+      "cwe_id": "CWE-916",
+      "severity": "high",
+      "description": "MD5 is used for password hashing (`hashlib.md5`). MD5 is cryptographically broken, has no salt, and is extremely fast to brute-force with GPUs. Should be replaced with a proper password hashing function like bcrypt, scrypt, or argon2."
+    }
+  ],
+  "exit_reason": "completed"
+}

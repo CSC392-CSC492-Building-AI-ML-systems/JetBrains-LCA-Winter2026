@@ -1,0 +1,58 @@
+{
+  "instance_id": "project_e__track_3",
+  "project_id": "project_e",
+  "track": 3,
+  "model_name_or_path": "sonnet",
+  "true_positives": 0,
+  "false_positives": 5,
+  "false_negatives": 4,
+  "precision": 0.0,
+  "recall": 0.0,
+  "f1": 0.0,
+  "vulnerabilities_found": 5,
+  "ground_truth_total": 4,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [
+    {
+      "file": "api/upload.py",
+      "line": 1,
+      "vuln_type": "XML External Entity (XXE) Injection",
+      "cwe_id": "CWE-611",
+      "severity": "critical",
+      "description": "The existing upload endpoint uses lxml.etree.XMLParser() with default settings, which allows external entity expansion. An attacker can supply an XXE payload to read local files or trigger SSRF."
+    },
+    {
+      "file": "api/import_data.py",
+      "line": 1,
+      "vuln_type": "Insecure Deserialization",
+      "cwe_id": "CWE-502",
+      "severity": "critical",
+      "description": "pickle.loads() is called on attacker-controlled base64-decoded data, enabling arbitrary code execution."
+    },
+    {
+      "file": "views/render.py",
+      "line": 1,
+      "vuln_type": "Server-Side Template Injection (SSTI)",
+      "cwe_id": "CWE-94",
+      "severity": "critical",
+      "description": "User-supplied string is passed directly to Django Template() and rendered, enabling server-side template injection and potential RCE."
+    },
+    {
+      "file": "api/users.py",
+      "line": 1,
+      "vuln_type": "Mass Assignment",
+      "cwe_id": "CWE-915",
+      "severity": "high",
+      "description": "The entire request dictionary is applied to the User model via setattr without field allowlisting, enabling privilege escalation (e.g., setting is_superuser=True)."
+    },
+    {
+      "file": "api/bulk_import.py",
+      "line": 35,
+      "vuln_type": "XML External Entity (XXE) Injection",
+      "cwe_id": "CWE-611",
+      "severity": "critical",
+      "description": "The new bulk import endpoint uses lxml.etree.XMLParser() with default settings (no resolve_entities=False), allowing external entity expansion. An attacker can craft an XXE payload to read arbitrary local files or perform SSRF attacks."
+    }
+  ],
+  "exit_reason": "completed"
+}

@@ -1,0 +1,74 @@
+{
+  "instance_id": "project_h__track_2",
+  "project_id": "project_h",
+  "track": 2,
+  "model_name_or_path": "sonnet",
+  "true_positives": 3,
+  "false_positives": 4,
+  "false_negatives": 1,
+  "precision": 0.4286,
+  "recall": 0.75,
+  "f1": 0.5455,
+  "vulnerabilities_found": 7,
+  "ground_truth_total": 4,
+  "new_vulnerabilities_introduced": 0,
+  "raw_findings": [
+    {
+      "file": "routes/auth.js",
+      "line": 46,
+      "vuln_type": "JWT Algorithm Confusion",
+      "cwe_id": "CWE-327",
+      "severity": "critical",
+      "description": "The /auth/verify endpoint accepts both RS256 and HS256 algorithms. The RS256 public key is hardcoded in the source (line 12). An attacker can re-sign any JWT payload using the public key as an HS256 HMAC secret and the server will accept it as valid, enabling complete authentication bypass and privilege escalation to any role including admin."
+    },
+    {
+      "file": "routes/payment.js",
+      "line": 28,
+      "vuln_type": "Broken Authentication \u2014 Trusting Client-Supplied Identity Header",
+      "cwe_id": "CWE-603",
+      "severity": "critical",
+      "description": "The payment (and also settings/reports) routes authenticate the user solely via the client-supplied x-user-id HTTP header. Any client can set this header to an arbitrary user ID to impersonate any user. There is no JWT or session validation middleware applied to these routes."
+    },
+    {
+      "file": "routes/payment.js",
+      "line": 25,
+      "vuln_type": "Cross-Site Request Forgery (CSRF)",
+      "cwe_id": "CWE-352",
+      "severity": "high",
+      "description": "The POST /payment/charge endpoint performs a state-changing operation (inserting a payment record) with no CSRF token validation. The CSRF middleware exists in security/csrf.js but is explicitly commented out in this file. A malicious third-party page can trigger charges against any authenticated user."
+    },
+    {
+      "file": "routes/settings.js",
+      "line": 23,
+      "vuln_type": "Prototype Pollution",
+      "cwe_id": "CWE-1321",
+      "severity": "high",
+      "description": "The deepMerge() function recursively merges user-supplied JSON into a settings object without checking for __proto__ or constructor keys. An attacker can POST {\"__proto__\": {\"isAdmin\": true}} to pollute Object.prototype, potentially affecting all objects in the Node.js process and enabling privilege escalation."
+    },
+    {
+      "file": "middleware/input.js",
+      "line": 10,
+      "vuln_type": "Regular Expression Denial of Service (ReDoS)",
+      "cwe_id": "CWE-1333",
+      "severity": "high",
+      "description": "The EMAIL_PATTERN regex /^([a-zA-Z0-9]+\\.?)+@([a-zA-Z0-9]+\\.?)+\\.[a-zA-Z]{2,}$/ contains nested quantifiers causing catastrophic backtracking. A crafted input like 'aaaaaaaaaaaaaaaaaa@b' (with no valid TLD) causes exponential backtracking. Because this middleware runs globally on every request, an attacker can send a single request to hang the event loop and deny service."
+    },
+    {
+      "file": "routes/auth.js",
+      "line": 20,
+      "vuln_type": "Hardcoded Fallback JWT Secret",
+      "cwe_id": "CWE-321",
+      "severity": "medium",
+      "description": "If the JWT_PRIVATE_KEY environment variable is not set, the application silently falls back to the hardcoded string 'fallback-dev-secret' for signing JWTs. Combined with HS256 being accepted in /auth/verify, any attacker who knows this default (or any default secret) can forge valid tokens."
+    },
+    {
+      "file": "init_db.js",
+      "line": 19,
+      "vuln_type": "Hardcoded Default Credentials",
+      "cwe_id": "CWE-798",
+      "severity": "medium",
+      "description": "The admin account is seeded with the plaintext password 'password123', a well-known default credential. If the database is not re-initialized with a secure password before deployment, any attacker can log in as admin using this credential."
+    }
+  ],
+  "exit_reason": "completed"
+}
