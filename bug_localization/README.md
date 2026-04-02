@@ -6,12 +6,16 @@ given an issue with the bug description and the repository code in the state whe
 
 We provide scripts for [data collection and processing](./src/data), [data exploratory analysis](./src/notebooks), as well as several [baselines implementations](./src/baselines) for solving the task with [the calculation of evaluation metrics](./src/notebooks).
 
-## 💾 Install dependencies
-We provide dependencies for the pip dependency manager, so please run the following command to install all the required packages:
+## 💾 Setup & Install Dependencies
+
+It is recommended to run this project inside a virtual environment. Use the following commands to navigate to the project directory, set up the environment, and install the required packages:
+
 ```shell
+cd ~/CSC398/JetBrains-LCA-Winter2026/bug_localization
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 ```
-
 ## 🤗 Dataset
 
 All the data is stored in [HuggingFace 🤗](JetBrains-Research/lca-bug-localization). It contains:
@@ -42,6 +46,16 @@ You can access the data using the [datasets](https://huggingface.co/docs/dataset
 
 * **Archived repos** (from which we can extract repository content at different stages and get diffs that contains bugs fixes).\
 
+## 📁 Project Structure
+
+├── configs/               # Hydra configuration files (e.g., run.yaml, eval.yaml)
+├── src/
+│   ├── baselines/         # LLM backbones, run.py, and eval.py scripts
+│   ├── data/              # Data collection and processing scripts
+│   └── notebooks/         # Exploratory data analysis and metric calculations
+├── requirements.txt       # Python dependencies
+└── README.md              # Project documentation
+
 ## ⚙️ Baselines
 
 * Embedding-based:
@@ -61,18 +75,21 @@ You can execute the chat-based models using the `run.py` script via Hydra, and c
 
 **1. Run OpenAI (GPT-3.5)**
 ```shell
+export OPENAI_API_KEY="your_api_key_here"
 python3 -m src.baselines.run backbone=gpt-3.5 data_source.split=dev 
-python3 -m src.baselines.eval data_source.split=dev run_id=openai-gpt-3.5-turbo-1106_issue_only 
+python3 -m src.baselines.eval data_source.split=dev run_id=openai-gpt-3.5-turbo-1106_issue_only
 ```
 
 **2. Run Gemini**
 ```shell
+export GEMINI_API_KEY="your_api_key_here"
 python3 -m src.baselines.run backbone=gemini-2.5-flash data_source.split=dev 
-python3 -m src.baselines.eval data_source.split=dev run_id=gemini-2.5-flash_issue_only 
+python3 -m src.baselines.eval data_source.split=dev run_id=gemini-2.5-flash_issue_only
 ```
 
 **3. Run Claude**
 ```shell
+export ANTHROPIC_API_KEY="your_api_key_here"
 python3 -m src.baselines.run backbone=claude-4.5-haiku data_source.split=dev 
 python3 -m src.baselines.eval data_source.split=dev run_id=claude-haiku-4-5_issue_only
 ```
@@ -90,3 +107,5 @@ The pipeline includes automated metric collection during generation and evaluati
   * **Precision, Recall, & F1 Score**
   * **False Positive Rate (FPR)**
   * **Success Rates:** Identifies the percentage of instances where the model guessed *All Correct*, *At Least One Correct*, or *All Incorrect* files.
+
+Google. (2026, April 2). how do I integrate env setup command into the readme.md? . Gemini. https://gemini.google.com/share/21dc3fe45eb2
