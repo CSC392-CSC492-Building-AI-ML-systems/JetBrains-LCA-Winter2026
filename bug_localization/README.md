@@ -117,6 +117,22 @@ Evaluation parameters in `eval.yaml`:
 
 You can execute the chat-based models using the `run.py` script via Hydra, and calculate their accuracy using `eval.py`. Ensure your respective API keys are set as environment variables (`OPENAI_API_KEY`, `GOOGLE_API_KEY`, or `ANTHROPIC_API_KEY`) before running.
 
+You must set a Hugging Face token before using the Hugging Face dataset or model assets:
+
+```shell
+export HUGGINGFACE_TOKEN="your_hugging_face_token_here" 
+```
+
+Create or manage your token in the [Hugging Face security tokens guide](https://huggingface.co/docs/hub/en/security-tokens).
+
+Quick setup steps:
+1. Go to https://huggingface.co/settings/tokens.
+2. Click **Create new token**.
+3. Select **Read** permissions.
+4. Enter a token name and create the token.
+5. Copy the token and run `export HUGGINGFACE_TOKEN="your_hugging_face_token_here"`.
+
+
 **1. Run OpenAI (GPT-3.5)**
 ```shell
 export OPENAI_API_KEY="your_api_key_here"
