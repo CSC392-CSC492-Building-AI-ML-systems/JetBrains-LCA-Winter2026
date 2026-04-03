@@ -132,7 +132,10 @@ def main(cfg: DictConfig) -> None:
 
                 f.write(json.dumps(eval_result) + "\n")
         else:
-            for dp in data_src:
+            for i, dp in enumerate(data_src):
+                if i >= 100:
+                    break
+                    
                 run_result = run_by_text_id.get(dp['text_id'])
                 if not run_result:
                     continue
